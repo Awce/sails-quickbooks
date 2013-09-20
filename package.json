@@ -1,8 +1,8 @@
 {
-  "name": "sails-adapter-boilerplate",
+  "name": "sails-quickbooks",
   "version": "0.0.1",
-  "description": "Boilerplate adapter for Sails.js",
-  "main": "BoilerplateAdapter.js",
+  "description": "Quickbooks data via the IPP for Sails",
+  "main": "IntuitAPI.js",
   "scripts": {
     "test": "echo \"Adapter should be tested using Sails.js core.\" && exit 1"
   },
