@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------
-  :: sails-boilerplate
+  :: sails-quickbooks
   -> adapter
 ---------------------------------------------------------------*/
 
@@ -30,22 +30,48 @@ var adapter = module.exports = {
   // (same effect as if these properties were included at the top level of the model definitions)
   defaults: {
 
-    // For example:
-    // port: 3306,
-    // host: 'localhost'
+    attributes : {
+    
+    _qb_id : Number,
+    
+    _qb_id_domain : String,
 
-    // If setting syncable, you should consider the migrate option, 
-    // which allows you to set how the sync will be performed.
-    // It can be overridden globally in an app (config/adapters.js) and on a per-model basis.
-    //
-    // drop   => Drop schema and data, then recreate it
-    // alter  => Drop/add columns as necessary, but try 
-    // safe   => Don't change anything (good for production DBs)
-    migrate: 'alter'
+    _qb_sync_token : String,
+
+    _qb_created_by : String,
+
+    _qb_created_by_id : String,
+
+    _qb_created_time : Date,
+
+    _qb_modified_by : String,
+
+    _qb_modified_by_id : String,
+
+    _qb_modified_time : Date,
+
+    _qb_external_key : String,
+
+    _qb_external_key_domain : String,
+
+    _qb_synchronized : Boolean,
+
+    _qb_is_draft : Boolean,
+
+    _qb_object_state : String
+    },
+
+    
+
+
+    //IPP Schema can't be changed...
+    migrate: 'safe'
   },
 
   // This method runs when a model is initially registered at server start time
   registerCollection: function(collection, cb) {
+
+
 
     cb();
   },

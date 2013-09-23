@@ -2,20 +2,25 @@
   "name": "sails-quickbooks",
   "version": "0.0.1",
   "description": "Quickbooks data via the IPP for Sails",
-  "main": "IntuitAPI.js",
+  "main": "quickbooksAdapter.js",
   "scripts": {
     "test": "echo \"Adapter should be tested using Sails.js core.\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/balderdashy/sails-adapter-boilerplate.git"
+    "url": "https://github.com/InnitApps/sails-quickbooks.git"
   },
   "keywords": [
     "orm",
     "waterline",
     "sails",
     "sailsjs",
-    "sails.js"
+    "sails.js",
+    "intuit",
+    "intuit-partner-platform",
+    "quickbooks",
+    "qbxml"
+
   ],
   "author": "Your name here",
   "license": "MIT",
