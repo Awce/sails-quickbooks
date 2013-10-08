@@ -4,6 +4,10 @@
 ---------------------------------------------------------------*/
 
 var async = require('async');
+var util = require('util');
+var request = require('request');
+var qbSchema = require('./src/qbSchema')
+var qbParser = require('./src/qbParser')
 
 var adapter = module.exports = {
 
@@ -29,37 +33,6 @@ var adapter = module.exports = {
   // Default configuration for collections
   // (same effect as if these properties were included at the top level of the model definitions)
   defaults: {
-
-    attributes : {
-    
-    _qb_id : Number,
-    
-    _qb_id_domain : String,
-
-    _qb_sync_token : String,
-
-    _qb_created_by : String,
-
-    _qb_created_by_id : String,
-
-    _qb_created_time : Date,
-
-    _qb_modified_by : String,
-
-    _qb_modified_by_id : String,
-
-    _qb_modified_time : Date,
-
-    _qb_external_key : String,
-
-    _qb_external_key_domain : String,
-
-    _qb_synchronized : Boolean,
-
-    _qb_is_draft : Boolean,
-
-    _qb_object_state : String
-    },
 
     
 
@@ -129,10 +102,50 @@ var adapter = module.exports = {
   // (e.g. if this is a find(), not a findAll(), it will only send back a single model)
   find: function(collectionName, options, cb) {
 
+
+    adapter.getQBModel(collectionName,options,function(err,model){
+ 
+    if(!err){
+
+
+
+
+
+      var url = 'https://services.intuit.com/sb/' + model.config.path + '/v2/' + adapter.config.realm;
+
+      console.log(url)
+      
+      request.get({url:url, oauth:adapter.config.oauth, headers : {'Content-Type' :'text/xml'}}, function (error, response, body) {
+  
+
+        qbParser.parseResponse(model,response,body,function(err,objects){
+
+          
+        
+
+                 cb(null, objects);
+
+
+      })
+
+        })
+
+
+
+
+     
+      }
+    else{
+
+      cb(err)
+    }
+
+    })
+
     // ** Filter by criteria in options to generate result set
 
     // Respond with an error or a *list* of models in result set
-    cb(null, []);
+   
   },
 
   // REQUIRED method if users expect to call Model.update()
@@ -167,7 +180,7 @@ var adapter = module.exports = {
     // for an example, check out:
     // https://github.com/balderdashy/sails-dirty/blob/master/DirtyAdapter.js#L247
 
-  }
+  },
 
 
 
@@ -190,6 +203,26 @@ var adapter = module.exports = {
   */
 
 
+  getQBModel : function(collectionName,options,cb){
+
+
+    var qbSource = options.dataSource || 'qbd'
+    var apiVersion = options.apiVersion || 'v2'
+
+
+
+    if(qbSchema[qbSource][apiVersion].models[collectionName]){
+
+      cb(null,qbSchema[qbSource][apiVersion].models[collectionName])
+    }
+    else{
+      cb('model not found')
+    }
+
+
+
+  },
+
   /*
   **********************************************
   * Custom methods
@@ -210,6 +243,8 @@ var adapter = module.exports = {
   //    + 
   //
   ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  
 
 
   // Any other methods you include will be available on your models
