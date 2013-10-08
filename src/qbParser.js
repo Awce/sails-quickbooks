@@ -1,32 +1,23 @@
 var xml2js = require('xml2js').parseString;
 var util = require('util');
 
-module.exports = {
+var Parser = module.exports = {
 
-
+  /**
+  Parse the raw response from the IDS API
+  **/
   parseResponse : function(model,response,body,callback){
 
+    switch(response.statusCode) {
 
-  switch(response.statusCode) {
-    
-    //successful REST request/response...
-    case 200:
-  
-        xml2js(body, {mergeAttrs: true,explicitArray : false},function (err, result) {
+      //successful REST request/response...
+      case 200:
 
+      xml2js(body, {mergeAttrs: true,explicitArray : false},function (err, result) {
 
-            var objects = result.RestResponse[model.config.responseCollectionKey][model.config.modelKey]
+        var objects = result.RestResponse[model.config.responseCollectionKey][model.config.modelKey]
 
-            
-
-            async.map(objects,function(obj,cb){
-
-
-              console.log(obj)
-              cb(null,{id : obj.Id._})
-
-
-            },function(err,objs){
+        async.map(objects,Parser.parseBaseObject,function(err,objs){
 
               console.log(objs.length)
                 callback(null,objs)
@@ -57,13 +48,33 @@ module.exports = {
     // error
       
       break;
-}
+    }
+  },
 
+  parseBaseObject : function(rawObject,callback){
 
+    if(rawObject){
 
+      var qbModelObject = {}
 
+      qbModelObject.id = rawObject.Id._
+      qbModelObject.domain = rawObject.Id.idDomain;
+      qbModelObject.createdAt = rawObject.MetaData.CreateTime;
+      qbModelObject.updatedAt = rawObject.MetaData.LastUpdatedTime;
+      qbModelObject.syncToken = rawObject.SyncToken;
+      qbModelObject.externalKey = rawObject.Id._
+      qbModelObject.externalDomain = rawObject.Id.idDomain;
+      qbModelObject.isDraft = rawObject.Draft == 'true';
+      qbModelObject.isSynchronized = rawObject.Synchronized == 'true';
+      qbModelObject.objectState = rawObject.ObjectState;
 
-}
+      callback(null,qbModelObject);
+
+    }
+    else{
+      callback('no object found')
+    }
+  }
 
 
 
