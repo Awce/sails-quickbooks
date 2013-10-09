@@ -68,6 +68,9 @@ var Parser = module.exports = {
       qbModelObject.isSynchronized = rawObject.Synchronized == 'true';
       qbModelObject.objectState = rawObject.ObjectState;
 
+
+      qbModelObject.employeeName = rawObject.Name;
+
       callback(null,qbModelObject);
 
     }
