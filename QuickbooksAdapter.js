@@ -5,16 +5,36 @@
 
 var async = require('async');
 var util = require('util');
+var _ = require('lodash');
 var request = require('request');
-var qbSchema = require('./src/qbSchema')
+
 var qbParser = require('./src/qbParser')
+//Jsonix = require('jsonix').Jsonix;
 
-var adapter = module.exports = {
 
-  // Set to true if this adapter supports (or requires) things like data types, validations, keys, etc.
+
+module.exports = (function() {
+
+
+  var schema = require('./src/qbSchema')
+
+ // var context = new Jsonix.Context([com.intuit.sb.cdm.v2],{namespacePrefixes : {'http:\/\/www.intuit.com\/sb\/cdm\/v2' : "com.intuit.sb.cdm.v2"}})
+
+  //qbConnections -  A connection exists if the user has authorized a QuickBooks API app to access (connect to) a specific QuickBooks company.  
+  // A connection corresponds to a unique combination of the user, app , and company.  
+  //The user is identified by the Intuit App Center user ID, the app by the app token (appToken), and the company by the realmID.  
+  //Each active connection has an authorized and valid OAuth access token.
+
+  var connections = {}
+
+  var qbCollections = {}
+
+  var adapter = {
+
+     // Set to true if this adapter supports (or requires) things like data types, validations, keys, etc.
   // If true, the schema for models using this adapter will be automatically synced when the server starts.
   // Not terribly relevant if not using a non-SQL / non-schema-ed data store
-  syncable: false,
+  syncable: true,
 
   // Including a commitLog config enables transactions in this adapter
   // Please note that these are not ACID-compliant transactions: 
@@ -35,18 +55,29 @@ var adapter = module.exports = {
   defaults: {
 
     
-
+   
 
     //IPP Schema can't be changed...
     migrate: 'safe'
   },
 
-  // This method runs when a model is initially registered at server start time
-  registerCollection: function(collection, cb) {
+    registerCollection: function(collection, cb) {
+
+      var def = _.clone(collection);
+      var key = def.identity;
 
 
+      //console.log(collection)
 
-    cb();
+      if(qbCollections[key]) return cb();
+      qbCollections[key.toString()] = def;
+
+      // Always call describe
+      this.describe(key, function(err, schema) {
+        if(err) return cb(err);
+        cb();
+      });
+
   },
 
 
@@ -63,15 +94,21 @@ var adapter = module.exports = {
   // REQUIRED method if integrating with a schemaful database
   define: function(collectionName, definition, cb) {
 
+
+     console.log('define')
     // Define a new "table" or "collection" schema in the data store
     cb();
   },
   // REQUIRED method if integrating with a schemaful database
   describe: function(collectionName, cb) {
 
+   // qbCollection[collectionName] 
+
+
+
     // Respond with the schema (attributes) for a collection or table in the data store
-    var attributes = {};
-    cb(null, attributes);
+ 
+    cb(null, {});
   },
   // REQUIRED method if integrating with a schemaful database
   drop: function(collectionName, cb) {
@@ -92,6 +129,9 @@ var adapter = module.exports = {
   create: function(collectionName, values, cb) {
     // Create a single new model specified by values
 
+    console.log(values)
+
+
     // Respond with error or newly created model instance
     cb(null, values);
   },
@@ -102,31 +142,41 @@ var adapter = module.exports = {
   // (e.g. if this is a find(), not a findAll(), it will only send back a single model)
   find: function(collectionName, options, cb) {
 
-
-    adapter.getQBModel(collectionName,options,function(err,model){
  
-    if(!err){
+    var qbCollection = qbCollections[collectionName]
+
+    if(qbCollection){
 
 
 
 
 
-      var url = 'https://services.intuit.com/sb/' + model.config.path + '/v2/' + adapter.config.realm;
+      var url = 'https://services.intuit.com/sb/' + qbCollection.config[collectionName].qbPath + '/v2/' + qbCollection.config.realm;
 
       console.log(url)
       
       request.get({url:url, oauth:adapter.config.oauth, headers : {'Content-Type' :'text/xml'}}, function (error, response, body) {
   
 
-        qbParser.parseResponse(model,response,body,function(err,objects){
-
-          
-        
-
-                 cb(null, objects);
+        // var unmarshaller = context.createUnmarshaller()
 
 
-      })
+        // console.log(unmarshaller)
+
+        // unmarshaller.unmarshalString(body,function(err,result){
+
+        //   console.log(result)
+
+        // })
+
+
+        qbParser.parseResponse(qbCollection,response,body,function(err,objects){
+
+          // console.log(err)
+          // console.log(objects)
+
+          cb(null,objects)
+        })
 
         })
 
@@ -137,10 +187,10 @@ var adapter = module.exports = {
       }
     else{
 
-      cb(err)
+      cb('collection not found')
     }
 
-    })
+    
 
     // ** Filter by criteria in options to generate result set
 
@@ -203,17 +253,31 @@ var adapter = module.exports = {
   */
 
 
-  getQBModel : function(collectionName,options,cb){
+  getQBObject : function(collectionName){
+
+ 
+   
+
+    return adapter.qbObjects[collectionName]
+
+
+  },
+
+
+  registerQBObject : function(collection,options,cb){
 
 
     var qbSource = options.dataSource || 'qbd'
     var apiVersion = options.apiVersion || 'v2'
+    
 
+    if(qbSchema[qbSource][apiVersion].models[collection.identity]){
 
+      adapter.collections[collection.identity] = qbSchema[qbSource][apiVersion].models[collection.identity]
 
-    if(qbSchema[qbSource][apiVersion].models[collectionName]){
+     // console.log(adapter.qbObjects)
 
-      cb(null,qbSchema[qbSource][apiVersion].models[collectionName])
+      cb(null,qbSchema[qbSource][apiVersion].models[collection.identity])
     }
     else{
       cb('model not found')
@@ -221,8 +285,7 @@ var adapter = module.exports = {
 
 
 
-  },
-
+  }
   /*
   **********************************************
   * Custom methods
@@ -277,7 +340,16 @@ var adapter = module.exports = {
   */
 
 
-};
+
+  }
+
+
+  // This method runs when a model is initially registered at server start time
+  
+
+ return adapter;
+})();
+
 
 //////////////                 //////////////////////////////////////////
 ////////////// Private Methods //////////////////////////////////////////
