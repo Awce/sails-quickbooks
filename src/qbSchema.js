@@ -12,7 +12,7 @@ var _ = require('lodash')
 
 var qbV2Schema = require('../lib/v2/common/IntuitV2.js')
 
-
+var qbModel = require('./qbModel.js')
 
 
 
@@ -38,12 +38,13 @@ var util = require('util')
 
 
 
-var IntuitSchema = function(rawSchema){
 
 
-	if(!rawSchema){
-		return null;
-	}
+
+var IntuitSchema = function(rawSchema,loaded){
+
+
+	
 
 	var _schema = {
 
@@ -52,11 +53,12 @@ var IntuitSchema = function(rawSchema){
 		xml : {
 			complexTypes : {},
 			simpleTypes : {},
+			types : {},
 			elements : {},
 			groups : {}
 		},
 
-		QBObjects : {},
+		qbObjects : {},
 		Query : {},
 		Reports : {},
 
@@ -68,28 +70,35 @@ var IntuitSchema = function(rawSchema){
 
 	function bootstrapQBObjectModels(done){
 
+		//this is the enum for the supported API objects lol
+		var objectModels = _schema.xml.types['objectName']
 
-
-		var objectModel = _schema.xml.simpleTypes['objectName']
-
-		//console.log(objectModel.restrictions.enums)
-
-
-		async.forEach(objectModel.restrictions.enums,function(model,cb){
+		
+		async.forEach(objectModels.restrictions.enums,function(model,cb){
 
 			
-			var _element = _schema.xml.elements[model.value]
 
-		//	console.log(_element)
-			var _type = null;
-			if(_element && _element.type){
+			var _qbModel = new qbModel(_schema,model.value)
 
-				_type = _schema.xml.complexTypes[_element.type]
+			_schema.qbObjects[_qbModel.identity] = _qbModel;
 
-				console.log(_type)
-			}
+			//var _element = _schema.xml.elements[model.value]
+
+		// //	console.log(_element)
+		// 	var _type = null;
+		// 	if(_element && _element.type){
+
+		// 		_type = _schema.xml.types[_element.type]
+
+		// 		if(_type){
+
+
+		// 		}
+
+
+		//		}
 			
-
+		cb()
 			
 
 
@@ -98,6 +107,10 @@ var IntuitSchema = function(rawSchema){
 
 		},function(){
 
+			//console.log(_schema.xml)
+
+			console.log('bootstrapped')
+			//console.log(_schema)
 			done()
 		})
 
@@ -123,9 +136,10 @@ var IntuitSchema = function(rawSchema){
 
 		async.forEach(rawSchema['xs:schema']['xs:element'],function(element,cb){
 
-			var _element = new QBElement(element)
+			var _element = new QBElement(_schema,element)
 
-			_schema.xml.elements[_element.name] = _element;
+		//	console.log(_element)
+//			_schema.xml.elements[_element.name] = _element;
 
 
 			cb()
@@ -142,13 +156,13 @@ var IntuitSchema = function(rawSchema){
 
 	function registerTypes(done){
 
-		async.forEach(rawSchema['xs:schema']['xs:simpleType'],function(simpleType,cb){
+		async.forEach(rawSchema['xs:schema']['xs:simpleType'],function(_simpleType,cb){
 
 			//console.log(simpleType.name)
-			var _simpleType = new QBSimpleType(simpleType)
+			var _newSimpleType = new QBSimpleType(_schema,_simpleType)
 			
-
-			_schema.xml.simpleTypes[_simpleType.name] = _simpleType;
+			//console.log(_newSimpleType)
+		//	_schema.xml.types[_simpleType.name] = _simpleType;
 
 			cb()
 
@@ -157,15 +171,19 @@ var IntuitSchema = function(rawSchema){
 			async.forEach(rawSchema['xs:schema']['xs:complexType'],function(complexType,cb){
 
 
-				var _complexType = new QBComplexType(complexType)
+				var _newComplexType = new QBComplexType(_schema,complexType)
+			//	console.log(_newComplexType)
 
+				//_schema.xml.types[_newComplexType.name] = _newComplexType;
 
-				_schema.xml.complexTypes[_complexType.name] = _complexType;
-				//console.log(_complexType)
+				
+			//	console.log(_newComplexType)
 
 				cb()
 
 			},function(err){
+
+
 				done()
 
 			})
@@ -176,13 +194,19 @@ var IntuitSchema = function(rawSchema){
 
 	}
 
+
+
 	function registerGroups(done){
 
 		async.forEach(rawSchema['xs:schema']['xs:group'],function(group,cb){
 
-			var _group = new QBGroup(group)
 
-			_schema.xml.groups[group.name] = _group;
+			//console.log(group)
+
+			var _group = new QBComplexType(_schema,group)
+
+			//console.log(group)
+			
 
 			cb()
 
@@ -199,8 +223,7 @@ var IntuitSchema = function(rawSchema){
 
 	async.series([registerTypes,registerElements,registerGroups,bootstrapQBObjectModels],function(){
 
-		return _schema;
-
+		loaded(null,_schema)
 	})
 
 
@@ -255,24 +278,531 @@ var QBEnum = function(enumerations){
 }
 
 
-var QBSimpleType = function(simpleType){
+var QBSimpleType = function(schema,simpleType){
 
-	
+	//sconsole.log(simpleType)
 
-	this.name = simpleType.name;
+	var __simpleType = {
+
+
+	}
+	if(simpleType){
+		__simpleType.name = simpleType.name;
+	}
 
 	if(simpleType['xs:restriction']){
-		this.restrictions = new QBValidation(simpleType['xs:restriction'])
+		__simpleType.restrictions = new QBValidation(simpleType['xs:restriction'])
 
 	}
 
-	return this;
+	schema.xml.types[__simpleType.name] = __simpleType;
+
+	//console.log(__simpleType.name)
+
+	return __simpleType;
 }
 
-var QBComplexType = function(complexType){
+
+
+
+
+
+
+var QBComplexType = function(schema,_complexType){
+
+//	console.log(_complexType)
+
+	var __complexType = {}
+	__complexType.name = _complexType.name
+//	console.log(_complexType.name)
+	__complexType.attributes = {}
+
+
+
+	//console.log(__complexType)
+
+	var _keys = Object.keys(_complexType);
+	//console.log(_keys)
+
+		
+
+	async.reduce(Object.keys(_complexType),__complexType,reduceComplexType,function(err,__reducedType){
+
+		//console.log(__reducedType)
+	//	schema.xml.types[__complexType.name] = __complexType;
+	//	
+	//	
+		//console.log(__reducedType)
+		//
+		schema.xml.types[__reducedType.name] = __reducedType;
+		return __reducedType;
+	
+	})
+
+
+	function extendType(baseType,newType){
+
+		return _.extend(newType,baseType)
+
+
+	}
+
+	function reduceElement(newType,element,callback){
+
+		if(element){
+			
+			if(element.name){
+
+				newType.attributes[element.name] = {}
+
+				if(element.type){
+					newType.attributes[element.name].type = element.type
+					callback(null,newType)
+
+				}
+				else{
+					callback(null,newType)
+				}
+			}
+			else if(element.ref){
+				//console.log(element)
+
+				newType.attributes[element.ref] = element;
+				callback(null,newType)
+
+			}
+			else{
+				//console.log(element)
+				callback(null,newType)
+
+			}
+
+			
+		}
+		else{
+			callback(null,newType)
+		}
+		
+
+	}
+
+	function flattenSequence(newType,sequence,callback){
+	
+		if(sequence){
+
+			async.reduce(Object.keys(sequence),newType,function(_newType,seqKey,cb){
+
+				if(seqKey == 'xs:element'){
+
+					var _seqElement = sequence[seqKey];
+
+					if(_.isArray(_seqElement)){
+
+						async.reduce(_seqElement,_newType,reduceElement,function(err,reducedType){
+
+							//console.log(_seqElement)
+							cb(null,reducedType)
+						})
+
+
+
+						
+					}
+					else{
+
+						
+						reduceElement(_newType,_seqElement,cb)
+						//cb(null,_newType)
+					}
+					
+
+				}
+				else if(seqKey == 'xs:group'){
+
+					var _groups = sequence[seqKey]
+
+					if(!_.isArray(_groups)){
+						//console.log('not array')
+						_groups = [_groups]	
+						//console.log(_groups)
+						
+					}
+					else{
+						//console.log('array')
+						
+						_groups = _groups
+					}
+					async.reduce(_groups,_newType,function(__newType,_group,done){
+
+						
+						__newType.attributes[_group.ref] = {
+							ref : _group.ref
+						}
+
+
+						done(null,__newType)
+
+
+					},function(err,__groupType){
+						//console.log(__groupType)
+						cb(null,__groupType)
+					})
+
+
+					
+					
+					}
+				else{
+						cb(null,_newType)
+				}
+
+				
+
+
+
+			},function(err,__newType){
+
+				callback(null,__newType)
+			})
+		
+		
+		}
+		else{
+			callback(null,newType)
+
+		}
+
+
+		
+		
+	}
+
+	function reduceComplexContent(newType,complexContent,callback){
+
+		//console.log(newType)
+		//
+		
+		if(complexContent['xs:extension']){
+			
+
+			async.reduce(Object.keys(complexContent['xs:extension']),newType,function(_newType,extensionKey,cb){
+				
+				var complexExtensionObject = complexContent['xs:extension'][extensionKey]
+				
+				if(extensionKey == 'base'){
+
+					_newType.baseType = complexExtensionObject;
+
+					cb(null,_newType)
+				}
+				else if(extensionKey == 'xs:sequence'){
+					//console.log(complexExtensionObject)
+					//console.log(complexContent['xs:extension'][extensionKey])
+					flattenSequence(_newType,complexExtensionObject,function(err,_sequencedType){
+						//console.log(_sequencedType)
+						cb(null,_sequencedType)
+
+					})
+					
+				}
+				
+
+			},function(err,reducedType){
+
+				callback(null,reducedType)
+
+			})
+
+
+
+			
+		}
+			else{
+				callback(null,newType)
+			}
+		
+		//console.log(keys)
+		//
+		//
+		
+	
+		
+
+		
+
+	}
+
+
+
+	function reduceComplexType(newType,typeKey,callback){
+
+
+		if(typeKey =='name'){
+
+			newType.name = _complexType.name
+			callback(null,newType)
+		}
+		else if(typeKey =='xs:complexContent'){
+
+			reduceComplexContent(newType,_complexType[typeKey],callback)
+
+			
+			// callback(null,newType)
+
+		}
+		else if(typeKey =='xs:simpleContent'){
+
+
+			//reduceComplexType(newType,_complexType[typeKey],callback)
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:extension'){
+
+
+			//reduceComplexType(newType,_complexType[typeKey],callback)
+			callback(null,newType)
+
+		}
+		else if(typeKey =='abstract'){
+
+			newType.abstract = true;
+
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:annotation'){
+
+			
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:restriction'){
+
+			
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:sequence'){
+
+			
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:group'){
+
+			
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:choice'){
+
+			
+			callback(null,newType)
+
+		}
+		else if(typeKey =='xs:attribute'){
+
+			newType.attributes[_complexType[typeKey].name] = _complexType[typeKey]
+
+			callback(null,newType)
+
+		}
+		else if(typeKey =='mixed'){
+
+			
+			callback(null,newType)
+
+		}
+
+		else{
+			// console.log('other : ') 
+			// console.log(_complexType)
+			// console.log(typeKey)
+			//console.log(_complexType)
+			callback(null,newType)
+		}
+
+		
+
+	}
+
+	// function reduceComplexContent(newType,complexContent,callback){
+
+		
+
+	// 	callback(null,newType)
+	// }
+
+	function reduceSimpleContent(newType,simpleContent,callback){
+
+
+		
+		callback(null,newType)
+
+
+	}
+	
+	// async.forEachSeries(_keys,function(_key,cb){
+
+
+
+		// if(key == 'abstract'){
+
+		// 	cb()
+		// }
+		// else if(key == "xs:complexContent"){
+
+		// 	var _complexContent = complexType['xs:complexContent']
+			
+		// 	var _complexKey = Object.keys(_complexContent)[0]
+			
+		// 	var _content = _complexContent[_complexKey]
+
+		// 	var _contentKeys = Object.keys(_content)
+
+		// 	async.forEachSeries(_contentKeys,function(key,done){
+		// 		//console.log(key)
+		// 		switch (key) {
+  //   			case 'base' :
+  //       			_complexType.baseType = _content.base
+  //       			done()
+  //       			//console.log('base')
+  //       		break;
+
+  //   			case 'xs:sequence' :
+    			
+    				
+  //   				var _sequence = _content['xs:sequence']
+    				
+  //   				if(typeof _sequence == 'string'){
+
+  //   					_sequence = {}
+  //   				}
+
+  //   				async.forEachSeries(Object.keys(_sequence),function(_sequenceKey,cb){
+
+  //   					if(_sequenceKey == 'xs:element'){
+
+  //   						var _sqElement = _sequence[_sequenceKey]
+
+  //   						if(_.isArray(_sqElement)){
+  //   							//console.log(_sequenceKey)
+    							
+  //   							async.forEachSeries(_sqElement,function(_arrayElement,added){
+    								
+  //   								//console.log(_arrayElement.name)
+
+  //   								_complexType.attributes[_arrayElement.name] = {
+  //   									type : _arrayElement.type
+  //   								}
+
+  //   								added()
+
+  //   							},function(){
+  //   								cb()
+  //   							})
+    							
+    							
+  //   						}
+  //   						else{
+    							
+  //   							_complexType.attributes[_sqElement.name] = {
+  //   									type : _sqElement.type
+  //   								}
+
+
+  //   							cb()
+  //   						}
+    						
+  //   					}
+  //   					else if(_sequenceKey == 'xs:group'){
+
+  //   						var _group = _sequence[_sequenceKey]
+
+  //   						if(_.isArray(_group)){
+
+  //   							async.forEachSeries(_group,function(_addGroup,done){
+
+  //   								_complexType.attributes[_addGroup.ref] = _addGroup;
+
+  //   								done()
+  //   							},function(){
+  //   								cb()
+
+  //   							})
+    							
+  //   						}
+  //   						else{
+
+  //   						//	console.log(_group)
+  //   							cb()
+  //   						}
+    						
+  //   					}
+  //   					else if(_sequenceKey == 'xs:choice'){
+  //   						cb()
+  //   					}
+
+  //   					else if(_sequenceKey == 'minOccurs'){
+  //   						cb()
+  //   					}
+  //   					else{
+  //   						cb()
+  //   					}
+
+    					
+  //   				},function(){
+  //   					done()
+
+  //   				})
+
+  //   			break;
+  //   			case 'xs:attribute' :
+  //   			done()
+  //   			//	console.log('attribute')
+  //   			break;
+  //   			case 'xs:group' :
+  //   			done()
+  //   			//	console.log('attribute')
+  //   			break;
+  //   			default :
+  //      	 			done()//console.log(key)
+		// 		break;
+		// 		} 
+				
+				
+		// 	},function(){
+		// 		cb()
+		// 	})
+
+
+
+
+
+
+
+			
+		// }
+		// else if(key == "xs:sequence"){
+		// 	cb()
+		// }
+		// else{
+		// 	cb()
+		// }
+		//console.log(_key)
+	// 	cb()
+	// },function(){
+	// //	console.log(__complexType)
+	// 	//
+	// 	//
+	// 	//
+			
+
+	// })
 
 	
-	return complexType;
+	
 
 }
 
@@ -285,24 +815,71 @@ var QBSequence = function(sequence){
 }
 
 
-var QBElement = function(element){
-
+var QBElement = function(schema,element){
 
 	
-	this.name = element.name;
-	this.type = element.type;
-	this.substitutionGroup = element.substitutionGroup;
+	var __qbElement = {
+		name : element.name,
+		type : element.type,
+		substitutionGroup : element.substitutionGroup,
+		complexContent : element['xs:complexType']
+	}
+	
+	// this.name = element.name;
+	// this.type = element.type;
+	// this.substitutionGroup = element.substitutionGroup;
 
+	schema.xml.elements[__qbElement.name] = __qbElement;
 
-	return this;
+	return __qbElement;
 
 
 }
-var QBGroup = function(group){
+var QBGroup = function(schema,group){
+	
+	var _group = {}
+//	console.log('group!')
+	//console.log(group)
 
-	this.name = group.name;
+	_group.name = group.name;
+	_group.attributes = {}
 
-	return this;
+	if(group['xs:sequence']){
+
+		//console.log(['xs:sequence'])
+		if(group['xs:sequence']['xs:element']){
+
+			//console.log(group['xs:sequence']['xs:element'])
+		// 	async.forEachSeries(group['xs:sequence']['xs:element'],function(element,done){
+		// 		//console.log(element.name)
+
+
+
+		// 		_group.attributes[element.name] = {
+
+		// 			type : element.type
+		// 		}
+		// 		done()
+
+		// 	},function(){
+
+		// 	//	console.log(_group)
+
+		// 	schema.xml.groups[_group.name] = _group;
+
+		// 		return _group;
+		// 	})
+		}
+		else{
+			//console.log(group['xs:sequence'])
+			return _group;
+		}
+	}
+	else{
+		return _group;
+	}
+
+	
 
 }
 
@@ -388,24 +965,6 @@ var QBGroup = function(group){
 // 	cb(null,{})
 // }
 // }
-module.exports = (function(){
-
-	// var IntuitV2 = fs.readFileSync(path.resolve(__dirname,'../lib/v2/common/IntuitV2.xsd')).toString()
-
-
-	// xsd.stringToFlatJSON(IntuitV2, function(errors, obj){
- 
-	 	var Schema = new IntuitSchema(qbV2Schema);
-
-  		
-   		return Schema;
-	// });
-
-})();
-
-
-
-
-
+module.exports = IntuitSchema;
 
 // module.exports = schemaMapping;

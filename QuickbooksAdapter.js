@@ -7,16 +7,28 @@ var async = require('async');
 var util = require('util');
 var _ = require('lodash');
 var request = require('request');
+var xml2object = require('xml2object');
 
 var qbParser = require('./src/qbParser')
+var qbV2Schema = require('./lib/v2/common/IntuitV2.js')
+var qbSchema = require('./src/qbSchema')
 //Jsonix = require('jsonix').Jsonix;
 
 
 
 module.exports = (function() {
 
+   
+var QBSchema = {}
 
-  var schema = require('./src/qbSchema')
+qbSchema(qbV2Schema,function(err,schema){
+    
+  QBSchema = schema;
+  });
+
+  
+
+  
 
  // var context = new Jsonix.Context([com.intuit.sb.cdm.v2],{namespacePrefixes : {'http:\/\/www.intuit.com\/sb\/cdm\/v2' : "com.intuit.sb.cdm.v2"}})
 
@@ -29,12 +41,16 @@ module.exports = (function() {
 
   var qbCollections = {}
 
+
+
   var adapter = {
 
      // Set to true if this adapter supports (or requires) things like data types, validations, keys, etc.
   // If true, the schema for models using this adapter will be automatically synced when the server starts.
   // Not terribly relevant if not using a non-SQL / non-schema-ed data store
   syncable: true,
+
+  schema : true,
 
   // Including a commitLog config enables transactions in this adapter
   // Please note that these are not ACID-compliant transactions: 
@@ -54,7 +70,7 @@ module.exports = (function() {
   // (same effect as if these properties were included at the top level of the model definitions)
   defaults: {
 
-    
+    schema : true,
    
 
     //IPP Schema can't be changed...
@@ -67,10 +83,12 @@ module.exports = (function() {
       var key = def.identity;
 
 
-      //console.log(collection)
+      console.log('register')
 
       if(qbCollections[key]) return cb();
-      qbCollections[key.toString()] = def;
+
+
+      qbCollections[key.toString()] = _.merge(def,QBSchema.qbObjects[key.toString()]);
 
       // Always call describe
       this.describe(key, function(err, schema) {
@@ -101,14 +119,15 @@ module.exports = (function() {
   },
   // REQUIRED method if integrating with a schemaful database
   describe: function(collectionName, cb) {
+   // console.log(qbSchema)
 
-   // qbCollection[collectionName] 
+    console.log('describe')
 
 
 
     // Respond with the schema (attributes) for a collection or table in the data store
  
-    cb(null, {});
+    cb(null,QBSchema.qbObjects[collectionName].attributes);
   },
   // REQUIRED method if integrating with a schemaful database
   drop: function(collectionName, cb) {
@@ -119,10 +138,10 @@ module.exports = (function() {
   // Optional override of built-in alter logic
   // Can be simulated with describe(), define(), and drop(),
   // but will probably be made much more efficient by an override here
-  // alter: function (collectionName, attributes, cb) { 
-  // Modify the schema of a table or collection in the data store
-  // cb(); 
-  // },
+  //  alter: function (collectionName, attributes, cb) { 
+  // // Modify the schema of a table or collection in the data store
+  //  cb(); 
+  //  },
 
 
   // REQUIRED method if users expect to call Model.create() or any methods
@@ -142,53 +161,57 @@ module.exports = (function() {
   // (e.g. if this is a find(), not a findAll(), it will only send back a single model)
   find: function(collectionName, options, cb) {
 
- 
-    var qbCollection = qbCollections[collectionName]
+      spawnQbConnection(function __QBFIND__(client,cb){
 
-    if(qbCollection){
-
+        
 
 
 
+      },
+      qbCollections[collectionName],cb);
 
-      var url = 'https://services.intuit.com/sb/' + qbCollection.config[collectionName].qbPath + '/v2/' + qbCollection.config.realm;
+//     var qbCollection = qbCollections[collectionName]
 
-      console.log(url)
-      
-      request.get({url:url, oauth:adapter.config.oauth, headers : {'Content-Type' :'text/xml'}}, function (error, response, body) {
+//     if(qbCollection){
+
+//     //  console.log(qbCollection)
+
+
+
+//       var url = 'https://services.intuit.com/sb/' + qbCollection.identity.toLowerCase() + '/v2/' + qbCollection.config.realm;
+
+//      // console.log(url)
+
+//       var request = require('request');
+
+// // Create a new xml parser with an array of xml elements to look for
+//       var parser = new xml2object([ qbCollection.identity ]);
+
+// // Bind to the object event to work with the objects found in the XML file
+//     parser.on('object', function(name, obj) {
+//       console.log('Found an object: %s', name);
+//       console.log(obj);
   
+//     });
 
-        // var unmarshaller = context.createUnmarshaller()
+//     // Bind to the file end event to tell when the file is done being streamed
+//   parser.on('end', function() {
+//       console.log('Finished parsing xml!');
+//       cb(null,[])
+// }
+//   );
 
+// // Pipe a request into the parser
 
-        // console.log(unmarshaller)
-
-        // unmarshaller.unmarshalString(body,function(err,result){
-
-        //   console.log(result)
-
-        // })
-
-
-        qbParser.parseResponse(qbCollection,response,body,function(err,objects){
-
-          // console.log(err)
-          // console.log(objects)
-
-          cb(null,objects)
-        })
-
-        })
-
-
-
+//     request.get({url:url, oauth:adapter.config.oauth, headers : {'Content-Type' :'text/xml'}}).pipe(parser.saxStream);
+     
 
      
-      }
-    else{
+//       }
+//     else{
 
-      cb('collection not found')
-    }
+//       cb('collection not found')
+//     }
 
     
 
@@ -196,6 +219,41 @@ module.exports = (function() {
 
     // Respond with an error or a *list* of models in result set
    
+   /**
+    * spawnConnection(function __FIND__(client, cb) {
+
+        // Check if this is an aggregate query and that there is something to return
+        if(options.groupBy || options.sum || options.average || options.min || options.max) {
+          if(!options.sum && !options.average && !options.min && !options.max) {
+            return cb(new Error('Cannot groupBy without a calculation'));
+          }
+        }
+
+        // Build Query
+        var _schema = dbs[table].schema;
+        var queryObj = new Query(_schema, dbs);
+        var query = queryObj.find(table, options);
+
+        // Run Query
+        client.query(query.query, query.values, function __FIND__(err, result) {
+          if(err) return cb(err);
+
+          // Cast special values
+          var values = [];
+
+          result.rows.forEach(function(row) {
+            values.push(queryObj.cast(row));
+          });
+
+          // If a join was used the values should be grouped to normalize the
+          // result into objects
+          var _values = options.joins ? utils.group(values) : values;
+
+          cb(null, _values);
+        });
+
+      }, dbs[table].config, cb);
+    */
   },
 
   // REQUIRED method if users expect to call Model.update()
@@ -253,39 +311,7 @@ module.exports = (function() {
   */
 
 
-  getQBObject : function(collectionName){
-
- 
-   
-
-    return adapter.qbObjects[collectionName]
-
-
-  },
-
-
-  registerQBObject : function(collection,options,cb){
-
-
-    var qbSource = options.dataSource || 'qbd'
-    var apiVersion = options.apiVersion || 'v2'
-    
-
-    if(qbSchema[qbSource][apiVersion].models[collection.identity]){
-
-      adapter.collections[collection.identity] = qbSchema[qbSource][apiVersion].models[collection.identity]
-
-     // console.log(adapter.qbObjects)
-
-      cb(null,qbSchema[qbSource][apiVersion].models[collection.identity])
-    }
-    else{
-      cb('model not found')
-    }
-
-
-
-  }
+  // 
   /*
   **********************************************
   * Custom methods
@@ -344,8 +370,50 @@ module.exports = (function() {
   }
 
 
+  /*************************************************************************/
+  /* Private Methods
+  /*************************************************************************/
+
+  // Wrap a function in the logic necessary to provision a connection
+  // (grab from the pool or create a client)
+  function spawnConnection(logic, config, cb) {
+
+    var dbConfig = {
+      database: config.database,
+      host: config.host,
+      user: config.user,
+      password: config.password,
+      port: config.port
+    };
+
+    // Grab a client instance from the client pool
+    
+    var qbRequest = request()
+
+    // Run logic using connection, then release/close it
+    function after(err, client, done) {
+      if(err) {
+        console.error("Error creating a connection to Postgresql: " + err);
+
+        // be sure to release connection
+        done();
+
+        return cb(err);
+      }
+
+      logic(client, function(err, result) {
+
+        // release client connection
+        done();
+
+        return cb(err, result);
+      });
+    }
+  }
+
+
   // This method runs when a model is initially registered at server start time
-  
+ 
 
  return adapter;
 })();

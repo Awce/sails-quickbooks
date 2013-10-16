@@ -1,0 +1,1 @@
+var qbCollection = function(collectionName){}

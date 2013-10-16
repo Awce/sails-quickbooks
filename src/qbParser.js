@@ -6,14 +6,15 @@ var Parser = module.exports = {
   /**
   Parse the raw response from the IDS API
   **/
-  parseResponse : function(qbCollection,response,data,callback){
+  parseResponse : function(schema,qbCollection,response,data,callback){
 
+    //console.log(response.statusCode)
     switch(response.statusCode) {
 
       //successful REST request/response...
       case 200:
 
-       Parser.parseSuccessResponseData(qbCollection,data,function(err,responseData){
+       Parser.parseSuccessResponseData(schema,qbCollection,data,function(err,responseData){
 
        // console.log(responseData)
 
@@ -48,36 +49,50 @@ var Parser = module.exports = {
     }
   },
 
-  parseSuccessResponseData : function(qbModel,data,callback){
+  parseSuccessResponseData : function(schema,qbCollection,data,callback){
 
-     xml2js(data, {mergeAttrs: true,explicitArray : false, normalize : true},function (err, result) {
+    // console.log(qbCollection)
+    //  xml2js(data, {mergeAttrs: true,explicitArray : true, normalize : true},function (err, result) {
+
+    //   var responseKeys = Object.keys(result)
+    //   var responseKey = responseKeys[0]
+    //   console.log(result)
+
+    //   if(schema.xml.elements[responseKey]){
+
+        
+
+          
+    //     callback(null,[])
+
+    //   }
+    //   else{
+    //     callback('no parser found for data')
+    //   }
+
+     
+      
 
 
-    
-      var rawObjects = result.RestResponse[qbModel.config[qbModel.identity].qbCollectionKey][qbModel.config[qbModel.identity].qbObjectKey]
-
-      callback(null,rawObjects)
 
 
 
 
-
-
-     })
+    //  })
 
 
   },
 
-  parseQbObject : function(qbModel,rawObject,callback){
+  parseQbObject : function(qbCollection,rawObject,callback){
 
     
     if(rawObject){
 
       var qbModelObject = {}
 
-      var def = qbModel.definition;
+      var def = qbCollection.definition;
 
-      
+      //console.log(rawObject)
 
       async.each(Object.keys(def),function(key,cb){
 
@@ -124,7 +139,7 @@ var Parser = module.exports = {
               if(key == 'id'){
 
 
-                console.log(rawObject['Id'])
+             //   console.log(rawObject ['Id'])
               }
 
               var type = typeof value;
