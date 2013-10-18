@@ -5,31 +5,32 @@
 
 var async = require('async');
 var util = require('util');
+var fs = require('fs');
+var path = require('path')
 var _ = require('lodash');
-var request = require('request');
-var xml2object = require('xml2object');
+var __request = require('request')
+var __xml2object = require('xml2object');
 
 var qbParser = require('./src/qbParser')
-var qbV2Schema = require('./lib/v2/common/IntuitV2.js')
 var qbSchema = require('./src/qbSchema')
-//Jsonix = require('jsonix').Jsonix;
+
+var qbQuery = require('./src/qbQuery')
+ 
+
+//var JXON = require('./lib/jxon/JXON.js')
 
 
+//var intuitJXONSchema = JXON.build(fs.readFileSync(path.resolve(__dirname,'lib/v2/common/IntuitTest.xml')).toString());
 
 module.exports = (function() {
 
-   
-var QBSchema = {}
-
-qbSchema(qbV2Schema,function(err,schema){
-    
-  QBSchema = schema;
-  });
+ 
 
   
-
   
-
+  
+ 
+  
  // var context = new Jsonix.Context([com.intuit.sb.cdm.v2],{namespacePrefixes : {'http:\/\/www.intuit.com\/sb\/cdm\/v2' : "com.intuit.sb.cdm.v2"}})
 
   //qbConnections -  A connection exists if the user has authorized a QuickBooks API app to access (connect to) a specific QuickBooks company.  
@@ -41,10 +42,11 @@ qbSchema(qbV2Schema,function(err,schema){
 
   var qbCollections = {}
 
+   var adapter = {
 
+  intuitSchema : new qbSchema(),
 
-  var adapter = {
-
+  identity : 'sails-quickbooks',
      // Set to true if this adapter supports (or requires) things like data types, validations, keys, etc.
   // If true, the schema for models using this adapter will be automatically synced when the server starts.
   // Not terribly relevant if not using a non-SQL / non-schema-ed data store
@@ -71,7 +73,7 @@ qbSchema(qbV2Schema,function(err,schema){
   defaults: {
 
     schema : true,
-   
+    
 
     //IPP Schema can't be changed...
     migrate: 'safe'
@@ -81,14 +83,14 @@ qbSchema(qbV2Schema,function(err,schema){
 
       var def = _.clone(collection);
       var key = def.identity;
+    //  console.log(def)
 
-
-      console.log('register')
+    //console.log(qbSchema)
 
       if(qbCollections[key]) return cb();
 
 
-      qbCollections[key.toString()] = _.merge(def,QBSchema.qbObjects[key.toString()]);
+     // qbCollections[key.toString()] = _.merge(def,QBSchema.qbObjects[key.toString()]);
 
       // Always call describe
       this.describe(key, function(err, schema) {
@@ -113,21 +115,22 @@ qbSchema(qbV2Schema,function(err,schema){
   define: function(collectionName, definition, cb) {
 
 
-     console.log('define')
+  
     // Define a new "table" or "collection" schema in the data store
     cb();
   },
   // REQUIRED method if integrating with a schemaful database
   describe: function(collectionName, cb) {
-   // console.log(qbSchema)
-
-    console.log('describe')
-
+    
+      // Respond with the schema (attributes) for a collection or table in the data store
 
 
-    // Respond with the schema (attributes) for a collection or table in the data store
- 
-    cb(null,QBSchema.qbObjects[collectionName].attributes);
+    //  console.log(qbSchema)
+   //  console.log('describe')
+
+    adapter.intuitSchema.describe(collectionName,cb)
+   
+  // cb(null,{})
   },
   // REQUIRED method if integrating with a schemaful database
   drop: function(collectionName, cb) {
@@ -161,9 +164,26 @@ qbSchema(qbV2Schema,function(err,schema){
   // (e.g. if this is a find(), not a findAll(), it will only send back a single model)
   find: function(collectionName, options, cb) {
 
-      spawnQbConnection(function __QBFIND__(client,cb){
+      spawnQBClient(function __QBFIND__(client,cb){
 
+
+       // var query = new qbQuery(client,qbCollections[collectionName],options)
+
+
+      
+        //  console.log(client)
         
+        query.headers = {'Content-Type' :'text/xml'}
+
+        client.http.post(query,function(err,response,body){
+
+
+          console.log(response)
+           cb(null,[])
+        })
+
+       
+
 
 
 
@@ -376,24 +396,71 @@ qbSchema(qbV2Schema,function(err,schema){
 
   // Wrap a function in the logic necessary to provision a connection
   // (grab from the pool or create a client)
-  function spawnConnection(logic, config, cb) {
+  function spawnQBClient(logic, config, cb) {
 
-    var dbConfig = {
-      database: config.database,
-      host: config.host,
-      user: config.user,
-      password: config.password,
-      port: config.port
-    };
+    //console.log(config)
+    var _qbConnection = {
+      app_token : config.config.appToken,
+      oauth :{
+        consumer_key : config.config.consumer_key,
+        consumer_secret : config.config.consumer_secret
+      }
+    }
 
-    // Grab a client instance from the client pool
-    
-    var qbRequest = request()
+
+    if(config.config['__devRealm']){
+
+      _qbConnection.oauth.token = config.config.qbConnections[config.config.__devRealm].token
+      _qbConnection.oauth.token_secret = config.config.qbConnections[config.config.__devRealm].token_secret
+      _qbConnection.realm = config.config.__devRealm
+
+
+
+      connectToIntuit(_qbConnection,function(err,client,done){
+
+        after(err, client, done);
+
+      })
+
+      
+
+    }
+    else{
+
+      //todo : hookup storage
+      after('no identity info');
+    }
+
+
+    function connectToIntuit(_connection,cb){
+
+      
+
+        cb(null,{http :__request,connection : _connection},function(){
+          console.log('done?')
+        })
+
+
+    }
+
+
+    // var dbConfig = {
+    //   database: config.database,
+    //   host: config.host,
+    //   user: config.user,
+    //   password: config.password,
+    //   port: config.port
+    // };
+
+    // // Grab a client instance from the client pool
+    // pg.connect(dbConfig, function(err, client, done) {
+    //   
+    // });
 
     // Run logic using connection, then release/close it
     function after(err, client, done) {
       if(err) {
-        console.error("Error creating a connection to Postgresql: " + err);
+        console.error("Error creating a connection to Quickbooks: " + err);
 
         // be sure to release connection
         done();
@@ -410,6 +477,11 @@ qbSchema(qbV2Schema,function(err,schema){
       });
     }
   }
+
+  
+
+
+  //function get()
 
 
   // This method runs when a model is initially registered at server start time

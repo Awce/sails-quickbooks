@@ -4,7 +4,8 @@
   "description": "Quickbooks data via the IPP for Sails",
   "main": "QuickbooksAdapter.js",
   "scripts": {
-    "test": "echo \"Adapter should be tested using Sails.js core.\" && exit 1"
+    "test": "echo \"Adapter should be tested using Sails.js core.\" && exit 1",
+    "install": "node ./node_modules/svn-npm-crutch/lib/svn-npm-crutch.js"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,13 @@
     "xml2js": "~0.2.8",
     "lodash": "~2.2.1",
     "xsd": "0.0.2",
-    "xml2object": "~0.1.1"
-  }
+    "xml2object": "~0.1.1",
+    "js2xml": "0.0.6",
+    "data2xml": "~0.9.0",
+    "node-uuid": "~1.4.1",
+    "svn-npm-crutch": "~0.5.4"
+  },
+  "svnDependencies": {
+    "jsonix": "svn://svn.code.sf.net/p/jsonix/code/trunk/nodejs/scripts/"
+}
 }
