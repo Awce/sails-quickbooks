@@ -35,9 +35,12 @@
     "js2xml": "0.0.6",
     "data2xml": "~0.9.0",
     "node-uuid": "~1.4.1",
-    "svn-npm-crutch": "~0.5.4"
+    "svn-npm-crutch": "~0.5.4",
+    "xmldom": "~0.1.16",
+    "async-iterators": "~0.2.2",
+    "timethat": "0.0.2"
   },
   "svnDependencies": {
     "jsonix": "svn://svn.code.sf.net/p/jsonix/code/trunk/nodejs/scripts/"
-}
+  }
 }

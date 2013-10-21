@@ -1,8 +1,9 @@
+var Jsonix = require('../lib/jsonix/jsonixTweaked.js').Jsonix
+
+module.exports = (function(){
 
 
-module.exports = (function(Jsonix){
 
-//var Jsonix = require('jsonix').Jsonix
 var com = {}
 
 
@@ -911,6 +912,10 @@ com.intuit.sb.cdm.v2.cs().c({
         name: 'deletedObjects',
         typeInfo: Jsonix.Schema.XSD.Boolean.INSTANCE,
         attributeName: 'DeletedObjects'
+      }).a({
+        name: 'xmlns',
+        typeInfo: Jsonix.Schema.XSD.String.INSTANCE,
+        attributeName: 'xmlns'
       });
   }
   {
@@ -1375,11 +1380,11 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startCreatedTMS',
         elementName: 'StartCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endCreatedTMS',
         elementName: 'EndCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).a({
         name: 'erroredObjectsOnly',
         typeInfo: Jsonix.Schema.XSD.Boolean.INSTANCE,
@@ -1442,11 +1447,11 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startSyncTMS',
         elementName: 'StartSyncTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endSyncTMS',
         elementName: 'EndSyncTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'entityName',
         elementName: 'EntityName'
@@ -1785,10 +1790,11 @@ com.intuit.sb.cdm.v2.cs().c({
         typeInfo: Jsonix.Schema.XSD.Boolean.INSTANCE
       }).e({
         name: 'hiredDate',
-        elementName: 'HiredDate'
+        elementName: 'HiredDate',
+        typeInfo: Jsonix.Schema.XSD.Date.INSTANCE
       }).e({
         name: 'releasedDate',
-        elementName: 'ReleasedDate'
+        elementName: 'ReleasedDate',
       }).e({
         name: 'useTimeEntry',
         elementName: 'UseTimeEntry',
@@ -2411,11 +2417,11 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startCreatedTMS',
         elementName: 'StartCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endCreatedTMS',
         elementName: 'EndCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       });
   }
   {
@@ -2603,7 +2609,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'responseLogTMS',
         elementName: 'ResponseLogTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       });
   }
   {
@@ -2873,11 +2879,11 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startTime',
         elementName: 'StartTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endTime',
         elementName: 'EndTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'description',
         elementName: 'Description'
@@ -3428,15 +3434,15 @@ com.intuit.sb.cdm.v2.cs().c({
     com.intuit.sb.cdm.v2.DateTypeCustomFieldDefinition.ps().e({
         name: 'defaultDate',
         elementName: 'DefaultDate',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'minDate',
         elementName: 'MinDate',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'maxDate',
         elementName: 'MaxDate',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       });
   }
   {
@@ -3886,15 +3892,15 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'companySignUpDateTime',
         elementName: 'CompanySignUpDateTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'latestUploadDateTime',
         elementName: 'LatestUploadDateTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'latestWritebackDateTime',
         elementName: 'LatestWritebackDateTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'qbVersion',
         elementName: 'QBVersion'
@@ -3921,7 +3927,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'latestForcedSyncDateTime',
         elementName: 'LatestForcedSyncDateTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'syncEnvironmentName',
         elementName: 'SyncEnvironmentName'
@@ -4039,7 +4045,7 @@ com.intuit.sb.cdm.v2.cs().c({
     com.intuit.sb.cdm.v2.ObjectRef.ps().e({
         name: 'lastUpdatedTime',
         elementName: 'LastUpdatedTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       });
   }
   {
@@ -4797,7 +4803,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'dateLastVerified',
         elementName: 'DateLastVerified',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: '_default',
         elementName: 'Default',
@@ -4842,19 +4848,19 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startCreatedTMS',
         elementName: 'StartCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endCreatedTMS',
         elementName: 'EndCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'startModifiedTMS',
         elementName: 'StartModifiedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endModifiedTMS',
         elementName: 'EndModifiedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'startTransactionDate',
         elementName: 'StartTransactionDate'
@@ -5071,7 +5077,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'mostRecentTMS',
         elementName: 'MostRecentTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       });
   }
   {
@@ -5247,7 +5253,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'createTime',
         elementName: 'CreateTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+       // 
       }).e({
         name: 'lastModifiedBy',
         elementName: 'LastModifiedBy'
@@ -5257,7 +5263,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'lastUpdatedTime',
         elementName: 'LastUpdatedTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+       // 
       });
   }
   {
@@ -5537,7 +5543,7 @@ com.intuit.sb.cdm.v2.cs().c({
     com.intuit.sb.cdm.v2.DateTypeCustomField.ps().e({
         name: 'value',
         elementName: 'Value',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       });
   }
   {
@@ -5586,11 +5592,25 @@ com.intuit.sb.cdm.v2.cs().c({
       });
   }
   {
-    com.intuit.sb.cdm.v2.IdType.ps().v({
-        name: 'value',
+
+    com.intuit.sb.cdm.v2.IdType.ps({
+      // parse : function(value){
+      //   console.log('parse')
+      //   return value;
+      // },
+      // print : function(value){
+
+      //   console.log('print')
+      //   return value;
+      // },
+      // CLASS_NAME : 'com.intuit.sb.cdm.v2.IdType'
+
+    }).v({
+        name: 'id',
+        parse : function(value){}
       }).a({
         name: 'idDomain',
-        typeInfo: Jsonix.Schema.XSD.String.INSTANCE,
+        //typeInfo: Jsonix.Schema.XSD.String.INSTANCE,
         attributeName: 'idDomain'
       });
   }
@@ -6080,7 +6100,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'dateLastVerified',
         elementName: 'DateLastVerified',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: '_default',
         elementName: 'Default',
@@ -6370,7 +6390,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'processedTime',
         elementName: 'ProcessedTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).a({
         name: 'requestId',
         attributeName: 'RequestId'
@@ -6499,7 +6519,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'txnAuthorizationTime',
         elementName: 'TxnAuthorizationTime',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'txnAuthorizationStamp',
         elementName: 'TxnAuthorizationStamp',
@@ -6687,7 +6707,7 @@ com.intuit.sb.cdm.v2.cs().c({
     com.intuit.sb.cdm.v2.TransactionQueryBase.ps().e({
         name: 'cdcAsOf',
         elementName: 'CDCAsOf',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'synchronizedFilter',
         elementName: 'SynchronizedFilter',
@@ -6728,19 +6748,19 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startCreatedTMS',
         elementName: 'StartCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endCreatedTMS',
         elementName: 'EndCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'startModifiedTMS',
         elementName: 'StartModifiedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endModifiedTMS',
         elementName: 'EndModifiedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'startTransactionDate',
         elementName: 'StartTransactionDate'
@@ -6819,7 +6839,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'billedDate',
         elementName: 'BilledDate',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'totalAmt',
         elementName: 'TotalAmt',
@@ -6847,7 +6867,7 @@ com.intuit.sb.cdm.v2.cs().c({
     com.intuit.sb.cdm.v2.ListQueryBase.ps().e({
         name: 'cdcAsOf',
         elementName: 'CDCAsOf',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'synchronizedFilter',
         elementName: 'SynchronizedFilter',
@@ -6884,19 +6904,19 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startCreatedTMS',
         elementName: 'StartCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endCreatedTMS',
         elementName: 'EndCreatedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'startModifiedTMS',
         elementName: 'StartModifiedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'endModifiedTMS',
         elementName: 'EndModifiedTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).a({
         name: 'erroredObjectsOnly',
         typeInfo: Jsonix.Schema.XSD.Boolean.INSTANCE,
@@ -7025,7 +7045,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'syncTMS',
         elementName: 'SyncTMS',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: 'entityId',
         elementName: 'EntityId'
@@ -7448,7 +7468,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'dateLastVerified',
         elementName: 'DateLastVerified',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: '_default',
         elementName: 'Default',
@@ -7470,7 +7490,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'dateLastVerified',
         elementName: 'DateLastVerified',
-        typeInfo: Jsonix.Schema.XSD.Calendar.INSTANCE
+        
       }).e({
         name: '_default',
         elementName: 'Default',
@@ -8852,6 +8872,8 @@ com.intuit.sb.cdm.v2.es().e({
     typeInfo: Jsonix.Schema.XSD.String.INSTANCE,
     scope: com.intuit.sb.cdm.v2.Party
   });
+
+  console.log(com.intuit.sb.cdm.v2.IdType)
 
 
   return com;

@@ -6,29 +6,35 @@ var Parser = module.exports = {
   /**
   Parse the raw response from the IDS API
   **/
-  parseResponse : function(schema,qbCollection,response,data,callback){
+  parseQueryResponse : function(query,response,data,callback){
 
+
+    //console.log(query)
+   // console.log(response)
     //console.log(response.statusCode)
     switch(response.statusCode) {
 
       //successful REST request/response...
       case 200:
 
-       Parser.parseSuccessResponseData(schema,qbCollection,data,function(err,responseData){
+      
 
-       // console.log(responseData)
 
-        async.map(responseData,function(rawObject,cb){
+       Parser.parseQueryResponseData(query,data,callback)
 
-          Parser.parseQbObject(qbCollection,rawObject,cb)
+       // // console.log(responseData)
 
-        },function(err,objects){
+       //  async.map(responseData,function(rawObject,cb){
 
-          //console.log(objects)
-          callback(null,objects)
-        })
+       //    Parser.parseQbObject(qbCollection,rawObject,cb)
 
-        })
+       //  },function(err,objects){
+
+       //    //console.log(objects)
+       //    callback(null,objects)
+       //  })
+
+       //  })
 
       break;
 
@@ -49,8 +55,27 @@ var Parser = module.exports = {
     }
   },
 
-  parseSuccessResponseData : function(schema,qbCollection,data,callback){
+  parseQueryResponseData : function(query,restResponse,complete){
 
+
+    //console.log(query)
+    var parser = query.context.createUnmarshaller()
+
+    var _data = parser.unmarshalString(restResponse)
+
+    console.log()
+
+
+    //console.log(_data.value.systemResponse.value)
+    //
+    //
+    //
+
+ //   console.log(_data.value.systemResponse.value[query.collectionKey].length)
+    
+
+    complete(null,_data.value.systemResponse.value[query.collectionKey])
+   
     // console.log(qbCollection)
     //  xml2js(data, {mergeAttrs: true,explicitArray : true, normalize : true},function (err, result) {
 

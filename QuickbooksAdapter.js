@@ -13,7 +13,7 @@ var __xml2object = require('xml2object');
 
 var qbParser = require('./src/qbParser')
 var qbSchema = require('./src/qbSchema')
-
+var qbXML = require('./src/qbXML.js')
 var qbQuery = require('./src/qbQuery')
  
 
@@ -81,8 +81,10 @@ module.exports = (function() {
 
     registerCollection: function(collection, cb) {
 
+      //console.log(collection)
       var def = _.clone(collection);
       var key = def.identity;
+    //    console.log(key)
     //  console.log(def)
 
     //console.log(qbSchema)
@@ -90,7 +92,7 @@ module.exports = (function() {
       if(qbCollections[key]) return cb();
 
 
-     // qbCollections[key.toString()] = _.merge(def,QBSchema.qbObjects[key.toString()]);
+     qbCollections[key.toString()] = collection;
 
       // Always call describe
       this.describe(key, function(err, schema) {
@@ -151,7 +153,7 @@ module.exports = (function() {
   create: function(collectionName, values, cb) {
     // Create a single new model specified by values
 
-    console.log(values)
+    //console.log(values)
 
 
     // Respond with error or newly created model instance
@@ -164,29 +166,18 @@ module.exports = (function() {
   // (e.g. if this is a find(), not a findAll(), it will only send back a single model)
   find: function(collectionName, options, cb) {
 
+
+
       spawnQBClient(function __QBFIND__(client,cb){
 
 
-       // var query = new qbQuery(client,qbCollections[collectionName],options)
+      var query = new qbQuery(adapter.intuitSchema.context,collectionName,options)
 
 
+      console.log(cb)
+
+      query.find(client,cb)
       
-        //  console.log(client)
-        
-        query.headers = {'Content-Type' :'text/xml'}
-
-        client.http.post(query,function(err,response,body){
-
-
-          console.log(response)
-           cb(null,[])
-        })
-
-       
-
-
-
-
       },
       qbCollections[collectionName],cb);
 
@@ -223,7 +214,7 @@ module.exports = (function() {
 
 // // Pipe a request into the parser
 
-//     request.get({url:url, oauth:adapter.config.oauth, headers : {'Content-Type' :'text/xml'}}).pipe(parser.saxStream);
+//     request.get({url:url, oauth:adapter.config.oauth, }).pipe(parser.saxStream);
      
 
      
