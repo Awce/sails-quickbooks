@@ -38,7 +38,12 @@
     "svn-npm-crutch": "~0.5.4",
     "xmldom": "~0.1.16",
     "async-iterators": "~0.2.2",
-    "timethat": "0.0.2"
+    "timethat": "0.0.2",
+    "node-expat": "~2.0.0",
+    "sax": "~0.5.5",
+    "xml-object-stream": "~0.2.0",
+    "xml-stream": "~0.4.3",
+    "pull-stream": "~2.20.1"
   },
   "svnDependencies": {
     "jsonix": "svn://svn.code.sf.net/p/jsonix/code/trunk/nodejs/scripts/"

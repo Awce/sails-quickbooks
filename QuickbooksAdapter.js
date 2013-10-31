@@ -9,29 +9,18 @@ var fs = require('fs');
 var path = require('path')
 var _ = require('lodash');
 var __request = require('request')
-var __xml2object = require('xml2object');
+var xml2object = require('xml2object');
+var stream = require('stream')
+var zlib = require('zlib')
 
 var qbParser = require('./src/qbParser')
 var qbSchema = require('./src/qbSchema')
 var qbXML = require('./src/qbXML.js')
 var qbQuery = require('./src/qbQuery')
+var qbStream = require('./src/qbStream2')
  
-
-//var JXON = require('./lib/jxon/JXON.js')
-
-
-//var intuitJXONSchema = JXON.build(fs.readFileSync(path.resolve(__dirname,'lib/v2/common/IntuitTest.xml')).toString());
 
 module.exports = (function() {
-
- 
-
-  
-  
-  
- 
-  
- // var context = new Jsonix.Context([com.intuit.sb.cdm.v2],{namespacePrefixes : {'http:\/\/www.intuit.com\/sb\/cdm\/v2' : "com.intuit.sb.cdm.v2"}})
 
   //qbConnections -  A connection exists if the user has authorized a QuickBooks API app to access (connect to) a specific QuickBooks company.  
   // A connection corresponds to a unique combination of the user, app , and company.  
@@ -72,16 +61,16 @@ module.exports = (function() {
   // (same effect as if these properties were included at the top level of the model definitions)
   defaults: {
 
-    schema : true,
+   // schema : true,
     
-
+   
     //IPP Schema can't be changed...
-    migrate: 'safe'
+   // migrate: 'safe'
   },
-
+  
     registerCollection: function(collection, cb) {
-
-      //console.log(collection)
+      // console.log('register')
+      console.log(collection)
       var def = _.clone(collection);
       var key = def.identity;
     //    console.log(key)
@@ -116,6 +105,7 @@ module.exports = (function() {
   // REQUIRED method if integrating with a schemaful database
   define: function(collectionName, definition, cb) {
 
+    //console.log(definition)
 
   
     // Define a new "table" or "collection" schema in the data store
@@ -128,7 +118,7 @@ module.exports = (function() {
 
 
     //  console.log(qbSchema)
-   //  console.log('describe')
+    
 
     adapter.intuitSchema.describe(collectionName,cb)
    
@@ -168,16 +158,177 @@ module.exports = (function() {
 
 
 
-      spawnQBClient(function __QBFIND__(client,cb){
+
+   
+     spawnQBClient(function __QBFIND__(client,cb){
 
 
-      var query = new qbQuery(adapter.intuitSchema.context,collectionName,options)
+      var query = new qbQuery(adapter.intuitSchema,qbCollections[collectionName],options)
 
 
-      console.log(cb)
+      var _responseObjects = []
+      var _foundObjectsInStream = false;
+      var _responseObjectChunkCount = 0;
+      var _responseObjectCount = 0;
+      var xmlStreamer = new xml2object([query.collectionName]);
+      var qbObjectTransformer = new qbStream(query)
 
-      query.find(client,cb)
+
+    //  console.log(xmlStream)
+    //  
+    //  
+
+      qbObjectTransformer.on('data',function(qbObj){
+
+       // console.log('qbstream data ev')
+        //console.log(qbObj)
+
+        _responseObjects.push(qbObj)
+
+       // callback(null,_responseObjects)
+
+      })
+
+      qbObjectTransformer.on('end',function(){
+
+        console.log('qbend')
+        console.log(_responseObjectChunkCount)  
+        cb(null,_responseObjects)
+      })
+
+      xmlStreamer.on('object',function(objectKey,rawObject){
+
+         // console.log(rawObject)
+         
+         // 
+         // 
+          
+          _foundObjectsInStream = true;
+          _responseObjectChunkCount++
+          _responseObjectCount++
+
+           qbObjectTransformer.write(rawObject)
+
+      })
+
+      xmlStreamer.on('error',function(err){
+        cb(err)
+      })
+
+      xmlStreamer.on('end',function(){
+
+        //cb(null,[])
+        if(_foundObjectsInStream){
+
+          if(_responseObjectChunkCount < query.chunkSize){
+            console.log('less than')
+            qbObjectTransformer.write(null)
+            qbObjectTransformer.emit('end')
+
+            //xmlStreamer.emit('end')
+             //cb(null,_responseObjects)
+          }
+          else{
+
+            _foundObjectsInStream = false;
+            _responseObjectChunkCount = 0
+         client.http.post(query.qbHttpRequestObject).pipe(zlib.createGunzip()).pipe(xmlStreamer.saxStream)
+
+          }
+
+
+
+          //console.log('found objects')
+
+          
+                      
+        }
+        else{
+          //cb(null,_responseObjects)
+         qbObjectTransformer.write(null)
+
+           // xmlStreamer.emit('end')
+        }
+      })
+
       
+      // })
+      // // var requestStream = 
+
+      // var i = 10
+      // var randomReadable = pull.Source(function () {
+      //   return function (end, cb) {
+      //     if(end) return cb(end)
+      //     //only read 10 times
+      //     if(i-- < 0) return cb(true)
+
+      //       setTimeout(function(){
+      //         console.log('tick')
+      //          cb(null, Math.random())
+      //        }, 100);;
+         
+      //   }
+      // })
+
+
+      query.castToQbQueryObject()
+      query.castToHttpRequest(client)
+     // console.log(options)
+
+     // console.log(query.qbHttpRequestObject)
+
+      client.http.post(query.qbHttpRequestObject).pipe(zlib.createGunzip()).pipe(xmlStreamer.saxStream)
+
+     // xmlStreamer.source = _query;
+
+      //xmlStreamer.start()
+
+
+
+     
+        
+
+      
+
+
+
+     
+
+
+     // pull(randomReadable(), createThroughStream(), pull.collect(cb))
+
+   //    _responseObjects = []
+
+   //    var query = new qbQuery(adapter.intuitSchema.context,qbCollections[collectionName],options)
+   // //   var logger = new qbQuery.qbLogger()
+
+   //    var _stream = new qbStream(client,query)
+   //    var _logger = new QBLogger()
+
+
+   //    _stream.on('data',function(_record){
+
+
+   //      _responseObjects.push(_record)
+   //    })
+
+   //    _stream.on('end',function(){
+
+
+   //       cb(null,_responseObjects)
+
+   //    })
+      //console.log(cb)
+
+      //query.find(client,cb)
+      //
+      //
+      //
+        
+     // _stream.pipe(_logger)
+
+
+
       },
       qbCollections[collectionName],cb);
 
@@ -477,6 +628,8 @@ module.exports = (function() {
 
   // This method runs when a model is initially registered at server start time
  
+
+
 
  return adapter;
 })();

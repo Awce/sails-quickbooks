@@ -4,40 +4,44 @@ var async = require('async')
 var iterators = require('async-iterators')
 var qbParser = require('./qbParser.js')
 var timethat = require('timethat')
+var qbStream = require('./qbStream.js')
+var xmlstream = require('xml2object')
+var zlib = require('zlib')
 /**
  * Quickbooks query object builder
  */
 
 
-var qbQuery = function(context,collectionName,options){
+var qbQuery = function(qbSchema,collection,options){
 
-
+	console.log(options)
 
 
 	this.requestGUID = nodeuuid.v4().replace(/-/g, "");
-	this.context = context;
-	this.collectionName = collectionName;
-	this.collectionKey = collectionName.toLowerCase();
+	this.schema = qbSchema;
+	this.collection = collection;
+
+
+	this.collectionName = collection.identity;
+	this.collectionKey = collection.identity.toLowerCase();
 	//this.collection = context[collectionName];
 	this.options = options;
-	this.defaults = {
-		chunkSize : 250,
-
-
-	}
+	this.chunkSize = options.chunkSize || 500
 
 	this.recordCountURL = 'https://services.intuit.com/sb/recordcount/v2/'
 	this.queryURL = 'https://services.intuit.com/sb/' + this.collectionKey + '/v2/'
+
+
 
 	return this;
 
 }
 
-qbQuery.prototype.find = function(client,complete){
+qbQuery.prototype.find = function(connection,complete){
 
 	var query = this;
 
-	query.client = client;
+	query.connection = connection;
 
 	var _start = new Date()
 
@@ -46,45 +50,45 @@ qbQuery.prototype.find = function(client,complete){
 	//copy the request to a record count object
 
 	var _qbQueryObject = query.castToQbQueryObject()
-	//var _qbCountQueryObject = this.castToQbCountQueryObject(_qbQueryObject)
+	var _qbCountQueryObject = this.castToQbCountQueryObject(_qbQueryObject)
 	
 
 	
 
 	
 
-	var _requestIterator = query.buildIterator(client,query,_qbQueryObject)
+	var _requestIterator = query.buildIterator(connection,_qbQueryObject)
 	var _responseObjects = []
 
-	iterators.forEachAsync(_requestIterator,function(err,responseObjects,done){
+	// iterators.forEachAsync(_requestIterator,function(err,responseObjects,done){
 
-		async.forEach(responseObjects,function(responseObject,complete){
+	// 	async.forEach(responseObjects,function(responseObject,complete){
 
 
-			query.castObjectValues(responseObject,function(err,obj){
-				_responseObjects.push(obj)
-				complete()
-			})
+	// 		query.castObjectValues(responseObject,function(err,obj){
+	// 			_responseObjects.push(obj)
+	// 			complete()
+	// 		})
 			
 			
 
 
-		},function(err){
+	// 	},function(err){
 
-			done()
+	// 		done()
 
-		})
+	// 	})
 
 
-	},function(){
+	// },function(){
 
-		var _end = new Date()
+	// 	var _end = new Date()
 
-		console.log(timethat.calc(_start,_end))
-		complete(null,_responseObjects)
-	})
+	// 	console.log(timethat.calc(_start,_end))
+	// 	complete(null,_responseObjects)
+	// })
 
-	//query.executeQbRequest(client,query.context,_requestObject,complete)
+	query.executeQbRequest(connection,query.context,_qbQueryObject,complete)
 	//var _countRequestObject = query.castToRequestObject(_qbCountQueryObject,client)
 
 
@@ -131,7 +135,7 @@ qbQuery.prototype.find = function(client,complete){
 
 		
 		//console.log(requestObject)
-		client.http.post(requestObject,function(err,response,data){
+		connection.http.post(requestObject,function(err,response,data){
 
 
 			//console.log(err)
@@ -175,18 +179,18 @@ qbQuery.prototype.streamRequest = function(context,qbRequest,complete){
 
 }
 
-qbQuery.prototype.buildIterator = function(client,query,qbRequest){
+qbQuery.prototype.buildIterator = function(client,qbRequest){
 
 	var query = this;
 
 
 	qbRequest.value.iteratorId = query.requestGUID;
-	qbRequest.value.chunkSize = 250;
+	qbRequest.value.chunkSize = query.chunkSize;
 
 
 	var _requestObject = query.castToRequestObject(client,qbRequest)
 
-	console.log(_requestObject.body)
+	//console.log(_requestObject.body)
 
 	return {
 
@@ -194,6 +198,9 @@ qbQuery.prototype.buildIterator = function(client,query,qbRequest){
 
 
 			client.http.post(_requestObject,function(err,response,data){
+
+
+
 
 			if(err){
 				complete(err)
@@ -227,16 +234,46 @@ qbQuery.prototype.executeQbRequest = function(client,context,qbRequest,complete)
 
 		var query = this;
 
-		client.http.post(qbRequest,function(err,response,data){
+	//	console.log(query.collectionName)
 
-			if(err){
-				complete(err)
-			}
+		var _requestObject = query.castToRequestObject(client,qbRequest)
 
-			qbParser.parseQueryResponse(query,response,data,complete)
+		var _responseObjects = []
+		var XStream = new xmlstream(['Employee'])
+
+		var _qbStream = new qbStream(client,_requestObject)
 
 
-		})
+
+		//console.log(_qbStream)
+
+		XStream.on('object', function(name, obj) {
+    //console.log('Found an object: %s', name);
+    //console.log(obj);
+    //
+    //
+    _qbStream.write(obj)
+});
+
+// // Bind to the file end event to tell when the file is done being streamed
+// XStream.on('end', function() {
+//     console.log('Finished parsing xml!');
+// });
+
+		//console.log(qbStream)
+		client.http.post(_requestObject).pipe(XStream.saxStream)
+
+
+		// client.http.post(qbRequest,function(err,response,data){
+
+		// 	if(err){
+		// 		complete(err)
+		// 	}
+
+		// 	qbParser.parseQueryResponse(query,response,data,complete)
+
+
+		// })
 
 
 		
@@ -244,29 +281,31 @@ qbQuery.prototype.executeQbRequest = function(client,context,qbRequest,complete)
 	}
 
 
-qbQuery.prototype.castToRequestObject = function(client,queryObject){
+qbQuery.prototype.castToHttpRequest = function(client){
 
+	var query = this;
 
 
 	var _requestObject = {
 		
 		headers : {'Content-Type' :'text/xml', 
-		//'Accept-Encoding' : 'gzip, deflate'
+		'Accept-Encoding' : 'gzip, deflate'
 	}
 	}
 
-	if(queryObject.name.localPart == 'RecordCountQuery'){
-		_requestObject.url = this.recordCountURL + client.connection.realm
-	}
-		else{
-			_requestObject.url = this.queryURL + client.connection.realm
-		}
 
-		_requestObject.body = this.context.createMarshaller().marshalString(queryObject)
+		_requestObject.url = this.queryURL + client.connection.realm
+	
 
+		_requestObject.body = this.schema.context.createMarshaller().marshalString(query.qbQueryObject)
 
+		console.log(_requestObject.body)
 		_requestObject.oauth = client.connection.oauth;
+		_requestObject.encoding = null;
 
+
+		query.qbHttpRequestObject = _requestObject;
+	
 		return _requestObject;
 
 }
@@ -276,7 +315,7 @@ qbQuery.prototype.castToQbQueryObject = function(){
 	 
    // var queryName = collectionName + "Query"
 
-
+   var query = this;
 	
 	var _queryObject = {
 		name: { 
@@ -287,13 +326,17 @@ qbQuery.prototype.castToQbQueryObject = function(){
 	
 		value : {
 			xmlns : 'http://www.intuit.com/sb/cdm/v2',
+			iteratorId : query.requestGUID,
+			chunkSize : query.chunkSize,
+			customFieldEnable : true,
+		//	PrintGroupedItemsEnable : true
 			
 	}}
 
 
+	query.qbQueryObject = _queryObject;
 
-
-
+//	console.log(_queryObject)
 	//var parser = this.context.createUnmarshaller()
 	return _queryObject;
 

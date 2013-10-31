@@ -839,7 +839,8 @@ com.intuit.sb.cdm.v2.cs().c({
         typeInfo: com.intuit.sb.cdm.v2.IdType
       }).e({
         name: 'syncToken',
-        elementName: 'SyncToken'
+        elementName: 'SyncToken',
+        typeInfo : Jsonix.Schema.XSD.String.INSTANCE
       }).e({
         name: 'metaData',
         elementName: 'MetaData',
@@ -2879,10 +2880,12 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'startTime',
         elementName: 'StartTime',
+         typeInfo: Jsonix.Schema.XSD.Date.INSTANCE
         
       }).e({
         name: 'endTime',
         elementName: 'EndTime',
+         typeInfo: Jsonix.Schema.XSD.Date.INSTANCE
         
       }).e({
         name: 'description',
@@ -5253,6 +5256,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'createTime',
         elementName: 'CreateTime',
+         typeInfo: Jsonix.Schema.XSD.Date.INSTANCE
        // 
       }).e({
         name: 'lastModifiedBy',
@@ -5263,6 +5267,7 @@ com.intuit.sb.cdm.v2.cs().c({
       }).e({
         name: 'lastUpdatedTime',
         elementName: 'LastUpdatedTime',
+         typeInfo: Jsonix.Schema.XSD.Date.INSTANCE
        // 
       });
   }
@@ -5593,21 +5598,9 @@ com.intuit.sb.cdm.v2.cs().c({
   }
   {
 
-    com.intuit.sb.cdm.v2.IdType.ps({
-      // parse : function(value){
-      //   console.log('parse')
-      //   return value;
-      // },
-      // print : function(value){
-
-      //   console.log('print')
-      //   return value;
-      // },
-      // CLASS_NAME : 'com.intuit.sb.cdm.v2.IdType'
-
-    }).v({
-        name: 'id',
-        parse : function(value){}
+    com.intuit.sb.cdm.v2.IdType.ps({}).v({
+        name: 'value',
+        elementName : 'Id'
       }).a({
         name: 'idDomain',
         //typeInfo: Jsonix.Schema.XSD.String.INSTANCE,
@@ -8873,7 +8866,7 @@ com.intuit.sb.cdm.v2.es().e({
     scope: com.intuit.sb.cdm.v2.Party
   });
 
-  console.log(com.intuit.sb.cdm.v2.IdType)
+  //console.log(com.intuit.sb.cdm.v2.IdType)
 
 
   return com;

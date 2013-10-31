@@ -1,175 +1,131 @@
-var sax = require('sax')
-  , Transform = require('stream').Transform
-  , mappings = require('./lib/mappings')()
-  , attribute = require('./lib/attribute')
+var xml = require('xml2object')
+var util = require('util')
+var stream = require('stream')
+var pullStream = require('pull-stream')
 
-module.exports = function () {
-  var opt = { trim:true, normalize:true, position:false }
-    , parser = sax.parser(true, opt)
-    , stream = new Transform({ decodeStrings:false })
-    , state = new State(false, false, false, false)
-    , name = null
-    , map = null
-    , current = null
 
-  stream._transform = function (chunk, encoding, callback) {
-    parser.write(chunk.toString())
-    callback()
-  }
 
-  parser.onerror = function (err) {
-    stream.emit('error', err)
-    stream.push(null)
-  }
+var QBQueryStream = function(qbClient, qbQuery) {
 
-  parser.ontext = function (t) {
-    if (!current || !map) return
 
-    var key = map[name]
+  //console.log(qbQuery)
+  stream.Readable.call(this,{objectMode : true});
 
-    if (state.image && name === 'url') {
-      key = 'image'
-    }
+  this.qbClient = qbClient;
+  this.qbQuery = qbQuery;
 
-    if (key) {
-      var prop = current[key]
-        , add = isString(prop) && isString(t) && t !== prop
+  qbQuery.castToQbQueryObject()
 
-      if (prop && add) {
-        current[key] += t
-      } else {
-        current[key] = t
+  qbRequest.value.iteratorId = qbQuery.requestGUID;
+  qbRequest.value.chunkSize = 50;
+
+
+  this.qbXMLRequest = qbRequest;
+  qbQuery.castToRequestObject(qbClient)
+
+ // console.log(this.requestObject)
+//  this.marker = options.start;
+  this.connecting = false;
+  this.ended  = false;
+  this.requestCount = 0;
+  this.requestObjectCount = 0;
+  this.objectCount = 0;
+ // this.batchSize = 50;
+}
+
+util.inherits(QBQueryStream, stream.Readable);
+
+
+QBQueryStream.prototype._read = function () {
+  // Limit _read to call only once per response
+  if (this.connecting || this.ended) return;
+
+  // var options = {
+  //   prefix     : this.options.prefix,
+  //   marker     : this.marker,
+  //   delimiter  : this.options.delimiter,
+  //   'max-keys' : this.options.maxKeys
+  // };
+
+  this._fetchObjects();
+};
+
+
+
+QBQueryStream.prototype._fetchObjects = function (options) {
+
+  var self = this;
+  
+  self.connecting = true; // ensure that we have only a single connection
+
+  self.requestObjectCount = 0;
+  self.requestCount++
+
+  console.log('request count : ' + self.requestCount)
+
+  var _request = self.qbClient.http.post(self.requestObject)
+
+  var qbXMLStream = new xml(['Employee'])
+    
+  _request.pipe(qbXMLStream.saxStream)
+
+   qbXMLStream.on('object',function(objectName,object){
+    
+    //
+   // console.log(object)
+    self.push(object)
+    self.emit('data',object)
+    self.requestObjectCount++
+    self.objectCount++
+  })
+
+qbXMLStream.on('err',function(err){
+
+  console.log(err)
+})
+   qbXMLStream.on('end',function(objectName,object){
+    
+      console.log(self.requestObjectCount)
+      console.log(self.qbXMLRequest.value.chunkSize)
+      
+      if(self.requestObjectCount < self.qbXMLRequest.value.chunkSize){
+        self.ended = true;
+        self.emit('end')
+        if (self.ended) self.push(null);
+       
+
+        console.log('final :' + self.requestObjectCount)
       }
-    }
-  }
+      else{
+        self.connecting = false;
 
-  parser.oncdata = function (d) {
-    parser.ontext(d)
-  }
-
-  parser.onopentag = function (node) {
-    name = node.name
-
-    map = mappings[name] || map
-    if (name in openHandlers) openHandlers[name]()
-
-    if (current) {
-      var attributes = node.attributes
-        , key = map[name]
-        , keys = Object.keys(attributes)
-
-      if (key) {
-        if (keys.length) {
-          var kv = attribute(key, attributes)
-          current[kv[0]] = kv[1]
-        }
+        console.log('???')
+        self.emit('end')
       }
-    }
-  }
+  })
 
-  parser.onclosetag = function (name) {
-    if (name in closeHandlers) closeHandlers[name]()
-    name = null
-  }
+  // }) 
 
-  function feedopen () {
-    stream.push('{"feed":')
-    current = Object.create(null)
-    state.feed = true
-  }
+  //console.log(self.requestObject) 
+    //if (err) return self.emit('error', err);
 
-  function entryopen () {
-    if (!state.entries) {
-      stream.push(JSON.stringify(current) + ',"entries":[')
-      stream.emit('feed', current)
-    } else {
-      stream.push(',')
-    }
-    state.feed = false
-    state.entries = true
-    state.entry = true
-    current = new Entry()
-  }
+    //var files = data.Contents;
 
-  function imageopen () {
-    state.image = true
-  }
+    // if there's still more data, set the start as the last file
+   // if (data.IsTruncated) self.marker = files[files.length - 1].Key;
+  
+    // files.forEach(function (file) { self.push(file); });
+   
+ 
+};
 
-  var openHandlers = {
-    'channel':feedopen
-  , 'feed':feedopen
-  , 'item':entryopen
-  , 'entry':entryopen
-  , 'image':imageopen
-  }
+module.exports =  function(qbClient,qbQuery){
 
-  function entryclose () {
-    state.entry = false
-    stream.push(JSON.stringify(current))
-    stream.emit('entry', current)
-    current = null
-  }
 
-  function feedclose () {
-    if (state.entries) {
-      stream.push(']}')
-    } else {
-      stream.push(JSON.stringify(current) + '}')
-    }
-    state.reset()
-    current = null
-  }
+  var _newStream = new QBQueryStream(qbClient,qbQuery)
 
-  function imageclose () {
-    state.image = false
-  }
 
-  var closeHandlers = {
-    'item':entryclose
-  , 'entry':entryclose
-  , 'channel':feedclose
-  , 'feed':feedclose
-  , 'image':imageclose
-  }
 
-  return stream
-}
+  return _newStream;
+};
 
-function isString(obj) {
-  return typeof obj === 'string'
-}
-
-function Entry (author
-              , enclosure
-              , duration
-              , id
-              , link
-              , subtitle
-              , summary
-              , title
-              , updated) {
-
-  this.author = author
-  this.enclosure = enclosure
-  this.duration = duration
-  this.id = id
-  this.link = link
-  this.subtitle = subtitle
-  this.summary = summary
-  this.title = title
-  this.updated = updated
-}
-
-function State (feed, entries, entry, image) {
-  this.feed = feed
-  this.entries = entries
-  this.entry = entry
-  this.image = image
-}
-
-State.prototype.reset = function () {
-  this.feed = false
-  this.entries = false
-  this.entry = false
-  this.image = false
-}
