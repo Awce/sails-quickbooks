@@ -150,6 +150,13 @@ module.exports = (function() {
     cb(null, values);
   },
 
+
+  sync : function(collectionNamecb){},
+
+
+
+
+
   // REQUIRED method if users expect to call Model.find(), Model.findAll() or related methods
   // You're actually supporting find(), findAll(), and other methods here
   // but the core will take care of supporting all the different usages.
