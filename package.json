@@ -26,13 +26,14 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "0.1.22",
-    "request": "~2.27.0",
-    "xml2js": "~0.2.8",
-    "sax": "~0.6.0",
-    "xml-object-stream": "~0.2.0",
-    "node-uuid": "~1.4.1",
     "bluebird": "^1.2.4",
-    "waterline-criteria": "^0.10.6"
+    "node-uuid": "~1.4.1",
+    "request": "~2.27.0",
+    "sax": "~0.6.0",
+    "waterline-criteria": "^0.10.6",
+    "xml-object-stream": "~0.2.0",
+    "xml-stream": "^0.4.4",
+    "xml2js": "~0.2.8"
   },
   "devDependencies": {
     "waterline-adapter-tests": "^0.10.0"
