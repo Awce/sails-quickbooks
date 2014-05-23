@@ -3,7 +3,7 @@
     xmlns="http://www.intuit.com/sb/cdm/v2" targetNamespace="http://www.intuit.com/sb/cdm/v2"
     elementFormDefault="qualified" attributeFormDefault="unqualified">
     <xs:include schemaLocation="MetaData.xsd"/>
-    <xs:include schemaLocation="../finance/Finance.xsd"/>
+    <xs:include schemaLocation="Finance.xsd"/>
     <xs:element name="AccountQuery" type="AccountQuery" substitutionGroup="QueryObjects"
         abstract="false">
         <xs:annotation>
