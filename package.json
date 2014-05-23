@@ -27,6 +27,7 @@
   "dependencies": {
     "async": "0.1.22",
     "bluebird": "^1.2.4",
+    "handlebars": "^2.0.0-alpha.4",
     "node-uuid": "~1.4.1",
     "request": "~2.27.0",
     "sax": "~0.6.0",
