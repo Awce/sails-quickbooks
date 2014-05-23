@@ -1,6 +1,6 @@
 {
   "name": "sails-quickbooks",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Quickbooks data via the IPP for Sails",
   "main": "quickbooksAdapter.js",
   "scripts": {
