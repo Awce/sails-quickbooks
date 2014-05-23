@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "sails-quickbooks",
   "version": "0.0.1",
   "description": "Quickbooks data via the IPP for Sails",
@@ -39,55 +38,3 @@
     "waterline-adapter-tests": "^0.10.0"
   }
 }
-=======
-	"name": "sails-quickbooks",
-	"version": "0.0.1",
-	"description": "Quickbooks data via the IPP for Sails",
-	"main": "QuickbooksAdapter.js",
-	"scripts": {
-		"test": "echo \"Adapter should be tested using Sails.js core.\" && exit 1",
-		"install": "node ./node_modules/svn-npm-crutch/lib/svn-npm-crutch.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/InnitApps/sails-quickbooks.git"
-	},
-	"keywords": [
-		"orm",
-		"waterline",
-		"sails",
-		"sailsjs",
-		"sails.js",
-		"intuit",
-		"intuit-partner-platform",
-		"quickbooks",
-		"qbxml"
-	],
-	"author": "Your name here",
-	"license": "MIT",
-	"readmeFilename": "README.md",
-	"dependencies": {
-		"async": "~0.1.22",
-		"request": "~2.27.0",
-		"xml2js": "~0.2.8",
-		"lodash": "~2.2.1",
-		"xsd": "0.0.2",
-		"xml2object": "~0.1.1",
-		"js2xml": "0.0.6",
-		"data2xml": "~0.9.0",
-		"node-uuid": "~1.4.1",
-		"svn-npm-crutch": "~0.5.4",
-		"xmldom": "~0.1.16",
-		"async-iterators": "~0.2.2",
-		"timethat": "0.0.2",
-		"node-expat": "~2.0.0",
-		"sax": "~0.5.5",
-		"xml-object-stream": "~0.2.0",
-		"xml-stream": "~0.4.3",
-		"pull-stream": "~2.20.1"
-	},
-	"svnDependencies": {
-		"jsonix": "svn://svn.code.sf.net/p/jsonix/code/trunk/nodejs/scripts/"
-	}
-}
->>>>>>> 1827df92267866a39b36ac7430772974258d23df

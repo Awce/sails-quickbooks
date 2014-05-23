@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Object xmlns:xdb="http://xmlns.oracle.com/xdb"
- xmlns="http://www.intuit.com/sb/cdm/v2"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://www.intuit.com/sb/cdm/v2 file:/Users/robwormald/Dev/InnitApps/sails-quickbooks/lib/v2/common/IntuitSchema.xsd" xmlns:v2="http://www.intuit.com/sb/cdm/v2" xsi:type="v2:CreditCardCharge">
-</Object>

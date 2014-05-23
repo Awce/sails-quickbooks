@@ -6,7 +6,6 @@ var Parser = module.exports = {
   /**
   Parse the raw response from the IDS API
   **/
-<<<<<<< HEAD
   parseResponse : function(collection,model,response,body,callback){
 
     
@@ -15,45 +14,29 @@ var Parser = module.exports = {
     console.log(collection)
 
     //console.log(model)
-=======
-  parseQueryResponse : function(query,response,data,callback){
-
-
-    //console.log(query)
-   // console.log(response)
-    //console.log(response.statusCode)
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
     switch(response.statusCode) {
 
       //successful REST request/response...
       case 200:
 
-<<<<<<< HEAD
       xml2js(body, {mergeAttrs: true,explicitArray : false },function (err, result) {
     //    console.log(result)
         var objects = result.RestResponse[collection.config.qbCollectionKey][collection.config.qbObjectKey]
 
         async.map(objects,Parser.parseQBObject,function(err,objs){
-=======
-      
 
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
+              console.log(objs.length)
+                callback(null,objs)
 
-       Parser.parseQueryResponseData(query,data,callback)
 
-       // // console.log(responseData)
 
-       //  async.map(responseData,function(rawObject,cb){
+            })
 
-       //    Parser.parseQbObject(qbCollection,rawObject,cb)
+            //qbCache.cacheObjects(model,objects)
 
-       //  },function(err,objects){
+          
 
-       //    //console.log(objects)
-       //    callback(null,objects)
-       //  })
-
-       //  })
+        })
 
       break;
 
@@ -74,7 +57,6 @@ var Parser = module.exports = {
     }
   },
 
-<<<<<<< HEAD
   parseQBObject : function(rawObject,callback){
 
     var _qbObject = {}
@@ -143,68 +125,8 @@ var Parser = module.exports = {
 
       _qbObject.createdAt = metaDataObj.CreateTime;
       _qbObject.updatedAt = metaDataObj.LastUpdatedTime;
-=======
-  parseQueryResponseData : function(query,restResponse,complete){
 
 
-    //console.log(query)
-    var parser = query.context.createUnmarshaller()
-
-    var _data = parser.unmarshalString(restResponse)
-
-    console.log()
-
-
-    //console.log(_data.value.systemResponse.value)
-    //
-    //
-    //
-
- //   console.log(_data.value.systemResponse.value[query.collectionKey].length)
-    
-
-    complete(null,_data.value.systemResponse.value[query.collectionKey])
-   
-    // console.log(qbCollection)
-    //  xml2js(data, {mergeAttrs: true,explicitArray : true, normalize : true},function (err, result) {
-
-    //   var responseKeys = Object.keys(result)
-    //   var responseKey = responseKeys[0]
-    //   console.log(result)
-
-    //   if(schema.xml.elements[responseKey]){
-
-        
-
-          
-    //     callback(null,[])
-
-    //   }
-    //   else{
-    //     callback('no parser found for data')
-    //   }
-
-     
-      
-
-
-
-
-
-
-    //  })
-
-
-  },
-
-  parseQbObject : function(qbCollection,rawObject,callback){
-
-    
-    if(rawObject){
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
-
-
-<<<<<<< HEAD
       cb()
     }
 
@@ -223,117 +145,6 @@ var Parser = module.exports = {
       _qbObject.incomeAccount = incomeAccountRef.AccountId._ + ':' + incomeAccountRef.AccountId.idDomain
       _qbObject.incomeAccountName = incomeAccountRef.AccountName
       _qbObject.incomeAccountType = incomeAccountRef.AccountType
-=======
-      var def = qbCollection.definition;
-
-      //console.log(rawObject)
-
-      async.each(Object.keys(def),function(key,cb){
-
-
-        switch(key) {
-
-        // case 'id':
-  
-        //   qbModelObject.id = rawObject.Id._
-        //   qbModelObject.domain = rawObject.Id.idDomain;
-
-        //   qbModelObject.externalKey = rawObject.Id._
-        //   qbModelObject.externalDomain = rawObject.Id.idDomain;
-
-        //   cb()
-
-        // break;
-
-        case 'createdAt':
-          qbModelObject.createdAt = rawObject.MetaData.CreateTime;
-
-          cb()
-        break;
-
-        case 'updatedAt':
-          qbModelObject.updatedAt = rawObject.MetaData.LastUpdatedTime;
-          qbModelObject.syncToken = rawObject.SyncToken;
-          qbModelObject.isDraft = rawObject.Draft == 'true';
-          qbModelObject.isSynchronized = rawObject.Synchronized == 'true';
-          qbModelObject.objectState = rawObject.ObjectState;
-
-          cb()
-        break;
-
-        default:
-
-          Parser.parseQbObjectProperty(def,rawObject,key,function callback(err,value){
-
-           // console.log(key)
-              
-
-              qbModelObject[key] = value;
-
-              if(key == 'id'){
-
-
-             //   console.log(rawObject ['Id'])
-              }
-
-              var type = typeof value;
-
-              
-              cb()
-          })
-
-           break;
-
-
-    // error
-      
-       
-    }
-
-
-        // if(key == 'id'){
-
-          
-        // }
-        // else if(key == 'createdAt'){
-
-        //   qbModelObject.createdAt = rawObject.MetaData.CreateTime;
-
-        // }
-        // else if(key = 'updatedAt'){
-        //   qbModelObject.updatedAt = rawObject.MetaData.LastUpdatedTime;
-        //   qbModelObject.syncToken = rawObject.SyncToken;
-        //   qbModelObject.isDraft = rawObject.Draft == 'true';
-        //   qbModelObject.isSynchronized = rawObject.Synchronized == 'true';
-        //   qbModelObject.objectState = rawObject.ObjectState;
-        // }
-        // else {
-
-          
-        //   console.log(qbModelObject[key])
-        // }
-
-
-        
-      },function(){
-
-        callback(null,qbModelObject)
-
-      })
-
-
-        
-       
-
-
-
-      
-
-      
-
-      //qbModelObject.employeeName = rawObject.Name;
-
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
       cb()
     }
@@ -352,7 +163,6 @@ var Parser = module.exports = {
        _qbObject[firstCharLowerCase(key)] = money.Amount
        cb()
     }
-<<<<<<< HEAD
 
 
     var handlers = {
@@ -428,29 +238,6 @@ var Parser = module.exports = {
     // else{
     //   callback('no object found')
     // }
-=======
-  },
-
-  parseQbObjectProperty : function(qbModel,rawObject,key,callback){
-    
-
-    var _prop = rawObject[key]
-
-
-    
-   // console.log(qbModel)
-
-  
-
-
-
-
-    callback(null,_prop)
-
-
-
-
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
   }
 
 

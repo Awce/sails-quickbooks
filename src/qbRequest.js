@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 var handlebars = require('handlebars')
 var nodeuuid = require('node-uuid')
 //var js2xml = require('data2xml')({"undefined" : "empty", "null" : "empty"});
@@ -59,7 +58,3 @@ QBRequest.prototype.request = function(auth){
 
 
  module.exports = QBRequest;
-=======
-var __request = require('request')
-
->>>>>>> 1827df92267866a39b36ac7430772974258d23df

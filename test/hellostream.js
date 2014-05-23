@@ -4,7 +4,6 @@ var assert = require("assert")
 
 
 
-
 describe('testStream', function () {
 
 	it('should not hang or encounter any errors', function (cb) {

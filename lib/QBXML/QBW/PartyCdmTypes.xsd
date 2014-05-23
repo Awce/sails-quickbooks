@@ -5,7 +5,7 @@
 	<xs:annotation>
 		<xs:documentation>Intuit Base type CDMs that will be used in any domains as base types </xs:documentation>
 	</xs:annotation>
-	<xs:include schemaLocation="IntuitCdmBaseTypes.xsd"/>
+	<xs:include schemaLocation="../common/IntuitCdmBaseTypes.xsd"/>
 	<!-- Type definitions -->
 	<xs:simpleType name="roleType">
 		<xs:annotation>

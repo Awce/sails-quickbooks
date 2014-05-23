@@ -2,7 +2,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.intuit.com/sb/cdm/v2"
 	targetNamespace="http://www.intuit.com/sb/cdm/v2" elementFormDefault="qualified"
 	attributeFormDefault="unqualified">
-	<xs:include schemaLocation="IntuitCdmBaseTypes.xsd"/>
+	<xs:include schemaLocation="../common/IntuitCdmBaseTypes.xsd"/>
 	<xs:element name="CompanyMetaData" type="CompanyMetaData" substitutionGroup="CdmObject">
 		<xs:annotation>
 			<xs:documentation>			

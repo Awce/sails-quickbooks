@@ -272,4 +272,3 @@ QBStream.prototype.auth = function(intuitAuth){
 
 module.exports = QBStream;
 
-

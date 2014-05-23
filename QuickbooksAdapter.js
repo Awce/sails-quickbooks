@@ -5,51 +5,14 @@
 
 var async = require('async');
 var util = require('util');
-var request = require('request');
+var Promise = require("bluebird");
+//var request = require('request');
 var qbSchema = require('./src/qbSchema')
 var qbParser = require('./src/qbParser')
+var qbStream = require('./src/qbStream')
 
 
 var request = Promise.promisify(require("request"));
-=======
-var fs = require('fs');
-var path = require('path')
-var _ = require('lodash');
-var __request = require('request')
-var xml2object = require('xml2object');
-var stream = require('stream')
-var zlib = require('zlib')
-
-var qbParser = require('./src/qbParser')
-var qbSchema = require('./src/qbSchema')
-var qbXML = require('./src/qbXML.js')
-var qbQuery = require('./src/qbQuery')
-var qbStream = require('./src/qbStream2')
- 
-
-module.exports = (function() {
-
-  //qbConnections -  A connection exists if the user has authorized a QuickBooks API app to access (connect to) a specific QuickBooks company.  
-  // A connection corresponds to a unique combination of the user, app , and company.  
-  //The user is identified by the Intuit App Center user ID, the app by the app token (appToken), and the company by the realmID.  
-  //Each active connection has an authorized and valid OAuth access token.
-
-  var connections = {}
-
-  var qbCollections = {}
-
-   var adapter = {
-
-  intuitSchema : new qbSchema(),
-
-  identity : 'sails-quickbooks',
-     // Set to true if this adapter supports (or requires) things like data types, validations, keys, etc.
-  // If true, the schema for models using this adapter will be automatically synced when the server starts.
-  // Not terribly relevant if not using a non-SQL / non-schema-ed data store
-  syncable: true,
-
-  schema : true,
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
 var wlFilter = require('waterline-criteria');
 
@@ -71,9 +34,6 @@ module.exports = (function () {
   // You'll want to maintain a reference to each collection
   // (aka model) that gets registered with this adapter.
   var _modelReferences = {};
-
-
-
 
     function _registerConnection(){}
 
@@ -195,7 +155,6 @@ module.exports = (function () {
 
        // If you need to access your private data for this collection:
        var collection = _modelReferences[collectionName];
-        console.log(definition)
 
        // Define a new "table" or "collection" schema in the data store
        cb();
@@ -218,9 +177,7 @@ module.exports = (function () {
     //   // Respond with the schema (attributes) for a collection or table in the data store
       
 
-   // schema : true,
     
-<<<<<<< HEAD
 
     //   cb(null, {});
     // },
@@ -246,35 +203,6 @@ module.exports = (function () {
     // },
 
 
-=======
-   
-    //IPP Schema can't be changed...
-   // migrate: 'safe'
-  },
-  
-    registerCollection: function(collection, cb) {
-      // console.log('register')
-      console.log(collection)
-      var def = _.clone(collection);
-      var key = def.identity;
-    //    console.log(key)
-    //  console.log(def)
-
-    //console.log(qbSchema)
-
-      if(qbCollections[key]) return cb();
-
-
-     qbCollections[key.toString()] = collection;
-
-      // Always call describe
-      this.describe(key, function(err, schema) {
-        if(err) return cb(err);
-        cb();
-      });
-
-  },
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
 
     // OVERRIDES NOT CURRENTLY FULLY SUPPORTED FOR:
@@ -289,7 +217,6 @@ module.exports = (function () {
 
 
 
-<<<<<<< HEAD
     stream: function(collectionName, table,options, stream) {
 
     
@@ -300,46 +227,11 @@ module.exports = (function () {
     // for an example, check out:
     // https://github.com/balderdashy/sails-dirty/blob/master/DirtyAdapter.js#L247
     // var collection = _modelReferences[collectionName];
-=======
-    //console.log(definition)
-
-  
-    // Define a new "table" or "collection" schema in the data store
-    cb();
-  },
-  // REQUIRED method if integrating with a schemaful database
-  describe: function(collectionName, cb) {
-    
-      // Respond with the schema (attributes) for a collection or table in the data store
-
-
-    //  console.log(qbSchema)
-    
-
-    adapter.intuitSchema.describe(collectionName,cb)
-   
-  // cb(null,{})
-  },
-  // REQUIRED method if integrating with a schemaful database
-  drop: function(collectionName, cb) {
-    // Drop a "table" or "collection" schema from the data store
-    cb();
-  },
-
-  // Optional override of built-in alter logic
-  // Can be simulated with describe(), define(), and drop(),
-  // but will probably be made much more efficient by an override here
-  //  alter: function (collectionName, attributes, cb) { 
-  // // Modify the schema of a table or collection in the data store
-  //  cb(); 
-  //  },
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
     // getQBModel(collectionName,options,function(err,model){
 
     //   var responseStream = qbRequest(collection,model,options)
 
-<<<<<<< HEAD
     //     responseStream.pipe(qbStream(collection,model)).pipe(stream)
 
     // })
@@ -347,41 +239,16 @@ module.exports = (function () {
     var collection = _modelReferences[collectionName] 
     
     var client = new QBStreamClient({modelKey : 'TimeActivity', chunkSize : 500})
-=======
-    //console.log(values)
-
-
-    // Respond with error or newly created model instance
-    cb(null, values);
-  },
-
-
-  sync : function(collectionNamecb){},
-
-
-
-
-
-  // REQUIRED method if users expect to call Model.find(), Model.findAll() or related methods
-  // You're actually supporting find(), findAll(), and other methods here
-  // but the core will take care of supporting all the different usages.
-  // (e.g. if this is a find(), not a findAll(), it will only send back a single model)
-  find: function(collectionName, options, cb) {
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
     client.auth(_intuitConfig)
 
 
     client.on('data',function(qbObj){
 
-   
-     spawnQBClient(function __QBFIND__(client,cb){
 
         stream.write(qbObj)
 
-      var query = new qbQuery(adapter.intuitSchema,qbCollections[collectionName],options)
 
-<<<<<<< HEAD
     })
 
     client.on('end',function(){
@@ -396,78 +263,6 @@ module.exports = (function () {
 
   },
 
-=======
-
-      var _responseObjects = []
-      var _foundObjectsInStream = false;
-      var _responseObjectChunkCount = 0;
-      var _responseObjectCount = 0;
-      var xmlStreamer = new xml2object([query.collectionName]);
-      var qbObjectTransformer = new qbStream(query)
-
-
-    //  console.log(xmlStream)
-    //  
-    //  
-
-      qbObjectTransformer.on('data',function(qbObj){
-
-       // console.log('qbstream data ev')
-        //console.log(qbObj)
-
-        _responseObjects.push(qbObj)
-
-       // callback(null,_responseObjects)
-
-      })
-
-      qbObjectTransformer.on('end',function(){
-
-        console.log('qbend')
-        console.log(_responseObjectChunkCount)  
-        cb(null,_responseObjects)
-      })
-
-      xmlStreamer.on('object',function(objectKey,rawObject){
-
-         // console.log(rawObject)
-         
-         // 
-         // 
-          
-          _foundObjectsInStream = true;
-          _responseObjectChunkCount++
-          _responseObjectCount++
-
-           qbObjectTransformer.write(rawObject)
-
-      })
-
-      xmlStreamer.on('error',function(err){
-        cb(err)
-      })
-
-      xmlStreamer.on('end',function(){
-
-        //cb(null,[])
-        if(_foundObjectsInStream){
-
-          if(_responseObjectChunkCount < query.chunkSize){
-            console.log('less than')
-            qbObjectTransformer.write(null)
-            qbObjectTransformer.emit('end')
-
-            //xmlStreamer.emit('end')
-             //cb(null,_responseObjects)
-          }
-          else{
-
-            _foundObjectsInStream = false;
-            _responseObjectChunkCount = 0
-         client.http.post(query.qbHttpRequestObject).pipe(zlib.createGunzip()).pipe(xmlStreamer.saxStream)
-
-          }
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
     /**
      * 
@@ -487,7 +282,6 @@ module.exports = (function () {
 
       var collection = qbSchema.qbd.v2.models[table.replace('qb','')];
 
-<<<<<<< HEAD
       var client = new QBStreamClient({modelKey : collection.config.modelKey, chunkSize : 500})
 
       client.auth(_intuitConfig)
@@ -500,193 +294,14 @@ module.exports = (function () {
 
         _response.push(qbObj)
 
-=======
-          //console.log('found objects')
 
-          
-                      
-        }
-        else{
-          //cb(null,_responseObjects)
-         qbObjectTransformer.write(null)
-
-           // xmlStreamer.emit('end')
-        }
-      })
-
-      
-      // })
-      // // var requestStream = 
-
-      // var i = 10
-      // var randomReadable = pull.Source(function () {
-      //   return function (end, cb) {
-      //     if(end) return cb(end)
-      //     //only read 10 times
-      //     if(i-- < 0) return cb(true)
-
-      //       setTimeout(function(){
-      //         console.log('tick')
-      //          cb(null, Math.random())
-      //        }, 100);;
-         
-      //   }
-      // })
-
-
-      query.castToQbQueryObject()
-      query.castToHttpRequest(client)
-     // console.log(options)
-
-     // console.log(query.qbHttpRequestObject)
-
-      client.http.post(query.qbHttpRequestObject).pipe(zlib.createGunzip()).pipe(xmlStreamer.saxStream)
-
-     // xmlStreamer.source = _query;
-
-      //xmlStreamer.start()
-
-
-
-     
-        
-
-      
-
-
-
-     
-
-
-     // pull(randomReadable(), createThroughStream(), pull.collect(cb))
-
-   //    _responseObjects = []
-
-   //    var query = new qbQuery(adapter.intuitSchema.context,qbCollections[collectionName],options)
-   // //   var logger = new qbQuery.qbLogger()
-
-   //    var _stream = new qbStream(client,query)
-   //    var _logger = new QBLogger()
-
-
-   //    _stream.on('data',function(_record){
-
-
-   //      _responseObjects.push(_record)
-   //    })
-
-   //    _stream.on('end',function(){
-
-
-   //       cb(null,_responseObjects)
-
-   //    })
-      //console.log(cb)
-
-      //query.find(client,cb)
-      //
-      //
-      //
-        
-     // _stream.pipe(_logger)
-
-
-
-      },
-      qbCollections[collectionName],cb);
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
-
-//     var qbCollection = qbCollections[collectionName]
-
-//     if(qbCollection){
-
-//     //  console.log(qbCollection)
-
-
-
-//       var url = 'https://services.intuit.com/sb/' + qbCollection.identity.toLowerCase() + '/v2/' + qbCollection.config.realm;
-
-//      // console.log(url)
-
-//       var request = require('request');
-
-// // Create a new xml parser with an array of xml elements to look for
-//       var parser = new xml2object([ qbCollection.identity ]);
-
-// // Bind to the object event to work with the objects found in the XML file
-//     parser.on('object', function(name, obj) {
-//       console.log('Found an object: %s', name);
-//       console.log(obj);
-  
-//     });
-
-//     // Bind to the file end event to tell when the file is done being streamed
-//   parser.on('end', function() {
-//       console.log('Finished parsing xml!');
-//       cb(null,[])
-// }
-//   );
-
-// // Pipe a request into the parser
-
-//     request.get({url:url, oauth:adapter.config.oauth, }).pipe(parser.saxStream);
-     
-
-     
-//       }
-//     else{
-
-//       cb('collection not found')
-//     }
-
-    
+    })
 
     client.on('end',function(){
 
-<<<<<<< HEAD
         console.log(_response.length)
      cb(null,_response)
     })
-=======
-    // Respond with an error or a *list* of models in result set
-   
-   /**
-    * spawnConnection(function __FIND__(client, cb) {
-
-        // Check if this is an aggregate query and that there is something to return
-        if(options.groupBy || options.sum || options.average || options.min || options.max) {
-          if(!options.sum && !options.average && !options.min && !options.max) {
-            return cb(new Error('Cannot groupBy without a calculation'));
-          }
-        }
-
-        // Build Query
-        var _schema = dbs[table].schema;
-        var queryObj = new Query(_schema, dbs);
-        var query = queryObj.find(table, options);
-
-        // Run Query
-        client.query(query.query, query.values, function __FIND__(err, result) {
-          if(err) return cb(err);
-
-          // Cast special values
-          var values = [];
-
-          result.rows.forEach(function(row) {
-            values.push(queryObj.cast(row));
-          });
-
-          // If a join was used the values should be grouped to normalize the
-          // result into objects
-          var _values = options.joins ? utils.group(values) : values;
-
-          cb(null, _values);
-        });
-
-      }, dbs[table].config, cb);
-    */
-  },
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
      },
 
@@ -903,7 +518,6 @@ module.exports = (function () {
       return str.charAt(0).toLowerCase() + str.slice(1);
     };
 
-<<<<<<< HEAD
    function getQBModel (collection,options,cb){
 
   
@@ -926,13 +540,6 @@ module.exports = (function () {
 
   }
 
-=======
-  // 
-  /*
-  **********************************************
-  * Custom methods
-  **********************************************
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
 
 
@@ -973,115 +580,6 @@ module.exports = (function () {
 
 })();
 
-<<<<<<< HEAD
-=======
-
-  }
-
-
-  /*************************************************************************/
-  /* Private Methods
-  /*************************************************************************/
-
-  // Wrap a function in the logic necessary to provision a connection
-  // (grab from the pool or create a client)
-  function spawnQBClient(logic, config, cb) {
-
-    //console.log(config)
-    var _qbConnection = {
-      app_token : config.config.appToken,
-      oauth :{
-        consumer_key : config.config.consumer_key,
-        consumer_secret : config.config.consumer_secret
-      }
-    }
-
-
-    if(config.config['__devRealm']){
-
-      _qbConnection.oauth.token = config.config.qbConnections[config.config.__devRealm].token
-      _qbConnection.oauth.token_secret = config.config.qbConnections[config.config.__devRealm].token_secret
-      _qbConnection.realm = config.config.__devRealm
-
-
-
-      connectToIntuit(_qbConnection,function(err,client,done){
-
-        after(err, client, done);
-
-      })
-
-      
-
-    }
-    else{
-
-      //todo : hookup storage
-      after('no identity info');
-    }
-
-
-    function connectToIntuit(_connection,cb){
-
-      
-
-        cb(null,{http :__request,connection : _connection},function(){
-          console.log('done?')
-        })
-
-
-    }
-
-
-    // var dbConfig = {
-    //   database: config.database,
-    //   host: config.host,
-    //   user: config.user,
-    //   password: config.password,
-    //   port: config.port
-    // };
-
-    // // Grab a client instance from the client pool
-    // pg.connect(dbConfig, function(err, client, done) {
-    //   
-    // });
-
-    // Run logic using connection, then release/close it
-    function after(err, client, done) {
-      if(err) {
-        console.error("Error creating a connection to Quickbooks: " + err);
-
-        // be sure to release connection
-        done();
-
-        return cb(err);
-      }
-
-      logic(client, function(err, result) {
-
-        // release client connection
-        done();
-
-        return cb(err, result);
-      });
-    }
-  }
-
-  
-
-
-  //function get()
-
-
-  // This method runs when a model is initially registered at server start time
- 
-
-
-
- return adapter;
-})();
-
->>>>>>> 1827df92267866a39b36ac7430772974258d23df
 
 //////////////                 //////////////////////////////////////////
 ////////////// Private Methods //////////////////////////////////////////
